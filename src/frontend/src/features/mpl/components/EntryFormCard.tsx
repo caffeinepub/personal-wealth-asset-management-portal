@@ -4,10 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
 import { useAddEntry } from '../api';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Match, EntryType } from '@/backend';
+import { getStorageErrorMessage, logStorageError } from '@/utils/storageErrors';
+import { EntryType } from '@/backend';
+import type { Match } from '@/backend';
 
 interface EntryFormCardProps {
   match: Match;
@@ -15,7 +17,7 @@ interface EntryFormCardProps {
 
 export default function EntryFormCard({ match }: EntryFormCardProps) {
   const [favoriteTeam, setFavoriteTeam] = useState<string>('');
-  const [entryType, setEntryType] = useState<'back' | 'lay'>('back');
+  const [entryType, setEntryType] = useState<EntryType>(EntryType.back);
   const [rate, setRate] = useState('');
   const [amount, setAmount] = useState('');
   const [bookieName, setBookieName] = useState('');
@@ -33,18 +35,8 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
     const rateNum = parseFloat(rate);
     const amountNum = parseFloat(amount);
 
-    if (isNaN(rateNum) || rateNum <= 0) {
-      toast.error('Please enter a valid rate greater than 0');
-      return;
-    }
-
-    if (isNaN(amountNum) || amountNum <= 0) {
-      toast.error('Please enter a valid bet amount greater than 0');
-      return;
-    }
-
-    if (!bookieName.trim()) {
-      toast.error('Please enter a bookie name');
+    if (rateNum <= 0 || amountNum <= 0) {
+      toast.error('Please enter valid positive numbers');
       return;
     }
 
@@ -52,7 +44,7 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
       await addEntryMutation.mutateAsync({
         matchId: match.id,
         favoriteTeam,
-        entryType: entryType === 'back' ? EntryType.back : EntryType.lay,
+        entryType,
         rate: rateNum,
         amount: amountNum,
         bookieName: bookieName.trim(),
@@ -62,13 +54,14 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
       
       // Reset form
       setFavoriteTeam('');
-      setEntryType('back');
+      setEntryType(EntryType.back);
       setRate('');
       setAmount('');
       setBookieName('');
     } catch (error) {
-      toast.error('Failed to add entry');
-      console.error(error);
+      logStorageError('add entry', error);
+      const errorMessage = getStorageErrorMessage(error);
+      toast.error(errorMessage);
     }
   };
 
@@ -82,9 +75,9 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="favoriteTeam">Favorite Team</Label>
-              <Select value={favoriteTeam} onValueChange={setFavoriteTeam}>
+              <Select value={favoriteTeam} onValueChange={setFavoriteTeam} required>
                 <SelectTrigger id="favoriteTeam">
-                  <SelectValue placeholder="Select favorite team" />
+                  <SelectValue placeholder="Select team" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={match.team1}>{match.team1}</SelectItem>
@@ -92,16 +85,15 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="entryType">Back / Lay</Label>
-              <Select value={entryType} onValueChange={(val) => setEntryType(val as 'back' | 'lay')}>
+              <Label htmlFor="entryType">Entry Type</Label>
+              <Select value={entryType} onValueChange={(v) => setEntryType(v as EntryType)} required>
                 <SelectTrigger id="entryType">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="back">Back</SelectItem>
-                  <SelectItem value="lay">Lay</SelectItem>
+                  <SelectItem value={EntryType.back}>Back</SelectItem>
+                  <SelectItem value={EntryType.lay}>Lay</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -114,24 +106,23 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
                 id="rate"
                 type="number"
                 step="0.01"
-                min="0.01"
+                min="0"
                 value={rate}
                 onChange={(e) => setRate(e.target.value)}
-                placeholder="e.g., 1.40"
+                placeholder="1.85"
                 required
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="amount">Bet Amount (₹)</Label>
               <Input
                 id="amount"
                 type="number"
                 step="0.01"
-                min="0.01"
+                min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="e.g., 10000"
+                placeholder="1000.00"
                 required
               />
             </div>
@@ -143,7 +134,7 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
               id="bookieName"
               value={bookieName}
               onChange={(e) => setBookieName(e.target.value)}
-              placeholder="e.g., srk777"
+              placeholder="Bet365, Betfair, etc."
               required
             />
           </div>
@@ -152,7 +143,7 @@ export default function EntryFormCard({ match }: EntryFormCardProps) {
             {addEntryMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adding Entry...
+                Adding...
               </>
             ) : (
               'Add Entry'

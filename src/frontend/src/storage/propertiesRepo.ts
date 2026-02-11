@@ -1,10 +1,13 @@
-import { getAll, put, deleteById } from './indexedDb';
+import { getAll, put, deleteById, deserializeFromStorage } from './indexedDb';
 import { generateId } from './ids';
 import { now } from './timestamps';
 import type { Property, PropertyInput } from '@/backend';
 
+const BIGINT_FIELDS = ['id', 'acquisitionDate', 'createdAt', 'updatedAt'];
+
 export async function listProperties(): Promise<Property[]> {
-  return getAll<Property>('properties');
+  const raw = await getAll<any>('properties');
+  return raw.map(item => deserializeFromStorage<Property>(item, BIGINT_FIELDS));
 }
 
 export async function addOrUpdateProperty(input: PropertyInput): Promise<bigint> {

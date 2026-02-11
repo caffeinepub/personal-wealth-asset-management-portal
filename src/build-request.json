@@ -1,177 +1,103 @@
 {
   "kind": "build_request",
-  "title": "Convert the portal to a fully offline-capable web app with local (IndexedDB) storage",
-  "priority": "normal",
+  "title": "Fix offline storage so create/save works for Loans, Properties, and M(P/L) Matches",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-31",
-      "text": "Remove the Internet Identity authentication requirement so the app is usable fully offline: the UI must load directly into the existing AppShell/routes without blocking on login, while keeping the rest of the UI/feature pages the same.",
+      "id": "REQ-48",
+      "text": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-begin-build",
-          "msg-user-offline-confirmation"
+          "recent-messages"
         ],
         "quotes": [
-          "I want it to work fully offline",
-          "Yes",
-          "Begin the build"
+          "No the code isnt working whenever I’m trying to save a new loan or save a new property or trying to create a new match its showing error in everything",
+          "Failed to save loan",
+          "Start the build"
         ]
       },
       "acceptanceCriteria": [
-        "Opening the app with no network connection does not show an Internet Identity login screen and does not block access to any module pages.",
-        "No feature page throws an 'Actor not available' error during normal navigation when offline."
+        "On a fresh load, adding a Loan succeeds and shows the existing success toast (not the failure toast), and the new loan appears in the Loans table without requiring a refresh.",
+        "Adding a Property succeeds and the new property appears in the Property grid/list without requiring a refresh.",
+        "Creating a new M(P/L) Match succeeds and the new match appears in the match list without requiring a refresh.",
+        "No unhandled promise rejections appear in the browser console during these create actions."
       ]
     },
     {
-      "id": "REQ-32",
-      "text": "Replace backend-dependent user profile behavior with a local-only profile: persist the display name locally and keep the existing ProfileSetupDialog flow (prompt once when no local name exists; save; do not prompt again once saved).",
+      "id": "REQ-49",
+      "text": "Make IndexedDB storage compatible and consistent by eliminating BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, and indexed fields like matchId), ensuring that data can be written and later read back correctly.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-offline-confirmation"
+          "recent-messages"
         ],
         "quotes": [
-          "I want it to work fully offline"
+          "whenever I’m trying to save a new loan or save a new property or trying to create a new match its showing error in everything"
         ]
       },
       "acceptanceCriteria": [
-        "On first load with no local profile, the profile dialog appears and saving a name persists it locally.",
-        "On subsequent loads, the profile dialog does not appear and the app remains usable offline."
+        "All IndexedDB object stores used by Loans/Properties/M(P/L) can successfully persist records with their required fields, and subsequent list queries return the newly-created records.",
+        "M(P/L) entries store and retrieve correctly by matchId index (creating a match, adding an entry, and listing entries returns the new entry for that match).",
+        "Aggregations that compare timestamps (e.g., selecting the latest wealth inputs) work correctly with the persisted timestamp type."
       ]
     },
     {
-      "id": "REQ-33",
-      "text": "Implement a local persistence layer using IndexedDB (or equivalent browser local database) to store all module data offline, covering: loans, properties, wealth inputs, cashflow entries, M(P/L) matches, and M(P/L) entries. The stored records must include the same fields currently used by the UI (including IDs and timestamps).",
+      "id": "REQ-50",
+      "text": "Improve error reporting for failed saves: when a create/save mutation fails, surface a clearer user-facing error message that includes a short actionable hint when storage is unavailable (e.g., blocked storage context), while keeping existing success messages unchanged.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-offline-confirmation"
+          "recent-messages"
         ],
         "quotes": [
-          "I want it to work fully offline",
-          "I want everything same as now"
+          "Failed to save loan",
+          "when I’m trying to create a match its showing failed to create match"
         ]
       },
       "acceptanceCriteria": [
-        "Creating, editing, and deleting records in each module persists across page reloads without a network connection.",
-        "IDs are unique per entity type and stable across reloads.",
-        "Timestamps required by the UI are stored and updated on create/update."
+        "If a save fails, the toast/error message is still in English and includes a brief reason/hint (where available) instead of only a generic 'Failed to save …' message.",
+        "The console log includes the underlying error object (or error message) for debugging, and the UI does not crash."
       ]
     },
     {
-      "id": "REQ-34",
-      "text": "Refactor the feature API hooks to use the new local persistence layer instead of Motoko canister actor calls, without modifying immutable hook files. Update these modules at minimum: lending, properties, net worth, cashflow, daily P/L, and M(P/L). Keep the existing React Query queryKeys structure and ensure query invalidation continues to keep lists/summaries/charts in sync after mutations.",
+      "id": "REQ-51",
+      "text": "Add a runtime guard for unsupported execution contexts where IndexedDB is unavailable (or blocked), and show an in-app blocking notice explaining that the app must be run from a local server origin (http://localhost/...) rather than directly opening index.html via file://.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-offline-confirmation"
+          "recent-messages"
         ],
         "quotes": [
-          "I want everything same as now",
-          "I want it to work fully offline"
+          "the code isnt working ... trying to save ... its showing error in everything"
         ]
       },
       "acceptanceCriteria": [
-        "All existing pages load their data via React Query without requiring an actor/identity.",
-        "Create/update/delete operations update the visible UI immediately (via invalidation/refetch or cache updates) and remain correct after reload.",
-        "No changes are made to the immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*)."
-      ]
-    },
-    {
-      "id": "REQ-35",
-      "text": "Re-implement all derived/aggregate computations to run locally (instead of backend aggregate endpoints), while keeping existing UI outputs the same: net worth summary (including totals from property + lending + wealth inputs), dashboard overview metrics, lending insights chart datasets, and monthly cash flow KPI derived from lending interest logic.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-offline-confirmation"
-        ],
-        "quotes": [
-          "I want everything same as now",
-          "I want it to work fully offline"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Dashboard overview loads and displays without network connectivity and reflects locally stored loans/properties/wealth inputs.",
-        "Lending Insights charts render based on locally stored loans and match the existing calculation behavior (including tenure + monthly/yearly toggle usage already present in the UI).",
-        "Net Worth page totals correctly incorporate the latest local wealth inputs plus locally stored property and lending totals."
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "text": "Re-implement the Daily Profit/Loss report generation to be computed strictly from locally stored cashflow entries (no backend calls) and keep the same report semantics used by the UI (daywise totals and net profit/loss).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-offline-confirmation"
-        ],
-        "quotes": [
-          "I want it to work fully offline"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Daily Profit/Loss page renders a report while offline and updates correctly when cashflow entries are added/edited/deleted.",
-        "Only cashflow-derived data is shown/used for Daily P/L computations."
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "text": "Ensure M(P/L) match management, entry creation, running P/L computation, and match settlement all work fully offline using local persistence, preserving the existing UI behaviors (including settlement freezing matches and preventing new entries).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-offline-confirmation"
-        ],
-        "quotes": [
-          "I want everything same as now",
-          "I want it to work fully offline"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Matches can be created, selected, and persist across reloads offline.",
-        "Entries can be added to a match and the running P/L summary updates correctly after each entry (using the existing formula behavior).",
-        "After settling a match, the match is frozen (no new entries possible) and the winner/settled timestamp persist across reloads."
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "text": "Make the app offline-loadable as a web app after the first successful load by adding an offline caching strategy for the static frontend bundle (PWA/service worker or equivalent) so the app shell and routes load without network access.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-offline-confirmation"
-        ],
-        "quotes": [
-          "I want it to work fully offline"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After loading the app once online, the user can refresh and navigate core routes while offline and the app still loads.",
-        "Offline caching does not break existing routing (TanStack Router) or theming (dark mode)."
+        "When the app is opened in a context where IndexedDB cannot be opened, the app shows a clear English message explaining the issue and how to fix it (run via the provided Windows local server scripts / localhost), instead of allowing silent failures on Save/Create.",
+        "When opened in a normal localhost-served context, the guard does not appear and normal app usage is unaffected."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only Shadcn components).",
-    "Do not modify immutable hook files: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx.",
-    "Keep user-facing text in English.",
-    "Preserve the existing UI/features/behavior as they work today; only change data/auth plumbing to support fully offline operation."
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui (compose them instead).",
+    "Keep the app offline-first and continue using the existing React Query queryKeys + invalidation pattern.",
+    "Respect the existing single-page app routing and offline bundle approach; no new backend services or external databases."
   ],
   "nonGoals": [
-    "Building a true Windows desktop application (EXE/installer/Electron) is out of scope.",
-    "Adding cloud sync, multi-device sync, or server-side backups is out of scope.",
-    "Migrating existing data from the Internet Computer canister into local storage is out of scope unless explicitly requested."
+    "Do not change the UI feature set, screens, or navigation structure beyond what is necessary to fix storage/save failures.",
+    "Do not re-introduce Internet Identity login requirements or backend canister dependency for CRUD.",
+    "Do not redesign charts, calculations, or formatting (except where required due to the storage type fix)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
   },
   "userProfileUpdate": {
-    "goalsToAdd": [
-      "Run the existing wealth portal fully offline as an offline-capable web app with all data stored locally on the device"
-    ],
+    "goalsToAdd": [],
     "goalsToRemove": [],
-    "preferencesToAdd": [],
+    "preferencesToAdd": [
+      "Use English for any user-facing text."
+    ],
     "preferencesToRemove": [],
     "miscToAdd": [],
     "miscToRemove": [],

@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAddOrUpdateLoan } from '../api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getStorageErrorMessage, logStorageError } from '@/utils/storageErrors';
 import type { Loan } from '@/backend';
 
 interface LoanFormCardProps {
@@ -75,8 +76,9 @@ export default function LoanFormCard({ editingLoan, onSuccess }: LoanFormCardPro
       
       onSuccess?.();
     } catch (error) {
-      toast.error('Failed to save loan');
-      console.error(error);
+      logStorageError('save loan', error);
+      const errorMessage = getStorageErrorMessage(error);
+      toast.error(errorMessage);
     }
   };
 

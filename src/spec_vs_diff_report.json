@@ -1,89 +1,85 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T10:31:19.115Z",
-  "summary": "Diff implements an IndexedDB-based local persistence layer (loans, properties, wealth inputs, cashflow, M(P/L) matches/entries), refactors multiple feature React Query hooks to use it, removes blocking auth by making AuthGate a passthrough, adds a local-only profile stored in IndexedDB, and adds a basic service worker + registration for offline loading. However, some requirements appear incomplete (notably wealth-input deletion hook/UI plumbing, and timestamp handling that may not preserve createdAt on updates), and several unrelated UI/theme/content changes were introduced beyond the request.",
+  "generatedAt": "2026-02-11T11:18:34.225Z",
+  "summary": "Diff adds an IndexedDB runtime guard UI, introduces storage error utilities for clearer toasts/logging, and refactors several IndexedDB repositories to (apparently) normalize BigInt fields via deserializeFromStorage and numeric IDs. However, the diff evidence is incomplete/truncated for key parts of the persistence layer (notably put/getByIndex serialization), and it also includes several unrelated UI/logic changes not requested by the BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-33",
-      "requirement": "Persist create/edit/delete for all module data offline (including wealth inputs), with stable IDs and correct timestamps (createdAt preserved; updatedAt updated).",
-      "reason": "Wealth inputs repo includes deleteWealthInput, but the React Query API layer shown does not expose a delete mutation hook, so delete may not be wired for the module. Also, multiple addOrUpdate* functions set createdAt to 'now' on every update, which does not preserve the original createdAt timestamp on edits.",
+      "id": "REQ-48",
+      "requirement": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors; newly-created items appear in their lists without refresh; no unhandled promise rejections.",
+      "reason": "While forms now catch errors and show toasts, the diff summary does not provide evidence that React Query cache invalidation/refetch is correctly wired after creates/updates so that the new Loan/Property/Match appears immediately without refresh. The relevant React Query hooks/mutations and invalidation behavior are only referenced in a truncated file-summaries snippet, not shown in the diff content.",
       "evidence": [
-        "frontend/src/features/networth/api.ts",
-        "frontend/src/storage/wealthInputsRepo.ts",
-        "frontend/src/storage/loansRepo.ts",
+        "frontend/src/features/lending/components/LoanFormCard.tsx",
+        "frontend/src/features/properties/components/PropertyFormCard.tsx",
+        "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+        "frontend-file-summaries.txt (mentions queryInvalidation/queryKeys changes but not shown)"
+      ]
+    },
+    {
+      "id": "REQ-49",
+      "requirement": "Eliminate BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, indexed fields like matchId), ensuring records can be written and later read back correctly; entries retrievable by matchId index; timestamp comparisons work correctly.",
+      "reason": "There is evidence of converting IDs on reads (e.g., getById converts bigint->Number) and of deserializing BigInt fields in repos, but the key write-path implementation (e.g., put serialization) and the index query implementation (getByIndex) are not visible due to truncation. Without seeing put/getByIndex, the diff summary does not conclusively show BigInt fields (including matchId used in the 'entries' index) are consistently serialized for IndexedDB writes and index lookups.",
+      "evidence": [
+        "frontend/src/storage/indexedDb.ts (truncated: getById shown, put/getByIndex not shown)",
+        "frontend/src/storage/mplRepo.ts (listEntries uses getByIndex on matchId)",
         "frontend/src/storage/propertiesRepo.ts",
+        "frontend/src/storage/loansRepo.ts",
         "frontend/src/storage/cashflowRepo.ts",
-        "frontend-file-summaries.txt"
+        "frontend/src/storage/wealthInputsRepo.ts",
+        "frontend/src/storage/dailyPl.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Visual/theme and styling changes (dark FinTech theme, Tailwind/theme updates) unrelated to offline plumbing.",
-      "reason": "BuildRequest asks to preserve existing UI/features/behavior and only change data/auth plumbing; theme restyling is not requested.",
+      "description": "Changed loan interest/repayment calculations and tenure unit handling in lending table and insights charts.",
+      "reason": "Not requested; BuildRequest explicitly says not to redesign charts/calculations/formatting except where required due to storage type fix. These appear to be business-logic/visual changes unrelated to IndexedDB persistence fixes.",
       "evidence": [
-        "frontend-file-summaries.txt (entries for frontend/src/index.css and frontend/tailwind.config.js)"
+        "frontend-file-summaries.txt (entries for frontend/src/features/lending/components/LoansTable.tsx and LendingInsights.tsx)"
       ]
     },
     {
-      "description": "New/changed dashboard UI elements (e.g., Quick Actions card).",
-      "reason": "Not requested; scope is offline capability while preserving existing UI/behavior.",
+      "description": "Auth-related behavior changes: AuthGate made non-blocking / always renders children; LoginButton emptied; profile setup dialog uses local storage instead of backend.",
+      "reason": "Not requested in REQ-48..51 and potentially changes app behavior beyond what is necessary to fix offline storage create/save failures.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/features/dashboard/components/QuickActions.tsx)"
+        "frontend-file-summaries.txt (entries for frontend/src/components/auth/AuthGate.tsx, LoginButton.tsx, ProfileSetupDialog.tsx)"
       ]
     },
     {
-      "description": "Currency/label changes to INR and various form/formatter text changes.",
-      "reason": "Not requested and may violate “Preserve the existing UI/features/behavior as they work today”.",
+      "description": "Navigation/menu structure extended with an M(P/L) menu item (and dashboard quick actions updated).",
+      "reason": "BuildRequest non-goal says not to change UI feature set/screens/navigation beyond what is necessary to fix storage/save failures. Adding/adjusting navigation elements is not clearly required by the storage fix itself.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/features/dashboard/components/WealthOverviewDonut.tsx, MonthlyCashFlowKpiCard.tsx, frontend/src/features/properties/components/PropertyFormCard.tsx, PropertyCardGrid.tsx, WealthInputsFormCard.tsx [truncated])"
+        "frontend/src/features/dashboard/components/QuickActions.tsx",
+        "frontend-file-summaries.txt (entry for frontend/src/components/navigation/NavLinks.tsx)"
       ]
     },
     {
-      "description": "Lending module UI/logic changes (tenure input field additions and altered interest/repayment calculations).",
-      "reason": "Not requested; offline refactor should not change feature behavior/outputs.",
+      "description": "Added/updated Windows offline bundle run instructions document.",
+      "reason": "Not part of REQ-48..51 implementation requirements (the runtime guard message is required, but adding a separate instructions document is not explicitly requested).",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/features/lending/components/LoanFormCard.tsx, LoansTable.tsx, LendingInsights.tsx)"
-      ]
-    },
-    {
-      "description": "Navigation changes adding an M(P/L) menu item with Trophy icon.",
-      "reason": "Not requested; offline work should keep navigation/UI the same unless necessary for plumbing.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/navigation/NavLinks.tsx)"
+        "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt"
       ]
     }
   ],
-  "confidence": 0.68,
+  "confidence": 0.63,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/public/sw.js",
+    "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
     "frontend/src/App.tsx",
-    "frontend/src/components/auth/AuthGate.tsx",
-    "frontend/src/components/auth/LoginButton.tsx",
-    "frontend/src/components/auth/ProfileSetupDialog.tsx",
-    "frontend/src/components/layout/AppShell.tsx",
-    "frontend/src/features/cashflow/api.ts",
-    "frontend/src/features/daily-pl/api.ts",
-    "frontend/src/features/dashboard/api.ts",
-    "frontend/src/features/lending/api.ts",
-    "frontend/src/features/mpl/api.ts",
-    "frontend/src/features/networth/api.ts",
-    "frontend/src/features/properties/api.ts",
-    "frontend/src/pwa/registerServiceWorker.ts",
-    "frontend/src/storage/aggregates.ts",
+    "frontend/src/components/storage/IndexedDbGuard.tsx",
+    "frontend/src/features/dashboard/components/QuickActions.tsx",
+    "frontend/src/features/lending/components/LoanFormCard.tsx",
+    "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+    "frontend/src/features/mpl/components/EntryFormCard.tsx",
+    "frontend/src/features/properties/components/PropertyFormCard.tsx",
     "frontend/src/storage/cashflowRepo.ts",
     "frontend/src/storage/dailyPl.ts",
-    "frontend/src/storage/ids.ts",
     "frontend/src/storage/indexedDb.ts",
     "frontend/src/storage/loansRepo.ts",
-    "frontend/src/storage/mplPlSummary.ts",
     "frontend/src/storage/mplRepo.ts",
-    "frontend/src/storage/profile.ts",
     "frontend/src/storage/propertiesRepo.ts",
-    "frontend/src/storage/timestamps.ts",
     "frontend/src/storage/wealthInputsRepo.ts",
+    "frontend/src/utils/storageErrors.ts",
     "project_state.json"
   ]
 }

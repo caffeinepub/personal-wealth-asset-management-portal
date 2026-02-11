@@ -1,26 +1,33 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
-import { ThemeProvider } from 'next-themes';
+import { RouterProvider, createRouter, createRootRoute, createRoute } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from 'next-themes';
+import AppShell from '@/components/layout/AppShell';
+import AuthGate from '@/components/auth/AuthGate';
+import ProfileSetupDialog from '@/components/auth/ProfileSetupDialog';
+import IndexedDbGuard from '@/components/storage/IndexedDbGuard';
+import ExecutiveDashboardPage from '@/pages/ExecutiveDashboardPage';
+import MoneyLendingPage from '@/pages/MoneyLendingPage';
+import PropertyLedgerPage from '@/pages/PropertyLedgerPage';
+import NetWorthPage from '@/pages/NetWorthPage';
+import CashflowPage from '@/pages/CashflowPage';
+import DailyProfitLossPage from '@/pages/DailyProfitLossPage';
+import MatchProfitLossPage from '@/pages/MatchProfitLossPage';
+import { registerServiceWorker } from '@/pwa/registerServiceWorker';
 import { useEffect } from 'react';
-import AppShell from './components/layout/AppShell';
-import AuthGate from './components/auth/AuthGate';
-import ProfileSetupDialog from './components/auth/ProfileSetupDialog';
-import ExecutiveDashboardPage from './pages/ExecutiveDashboardPage';
-import MoneyLendingPage from './pages/MoneyLendingPage';
-import PropertyLedgerPage from './pages/PropertyLedgerPage';
-import NetWorthPage from './pages/NetWorthPage';
-import CashflowPage from './pages/CashflowPage';
-import DailyProfitLossPage from './pages/DailyProfitLossPage';
-import MatchProfitLossPage from './pages/MatchProfitLossPage';
-import { registerServiceWorker } from './pwa/registerServiceWorker';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const rootRoute = createRootRoute({
-  component: () => (
-    <AuthGate>
-      <ProfileSetupDialog />
-      <AppShell />
-    </AuthGate>
-  ),
+  component: AppShell,
 });
 
 const indexRoute = createRoute({
@@ -35,15 +42,15 @@ const lendingRoute = createRoute({
   component: MoneyLendingPage,
 });
 
-const propertiesRoute = createRoute({
+const propertyRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/properties',
+  path: '/property',
   component: PropertyLedgerPage,
 });
 
-const netWorthRoute = createRoute({
+const networthRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/net-worth',
+  path: '/networth',
   component: NetWorthPage,
 });
 
@@ -53,26 +60,26 @@ const cashflowRoute = createRoute({
   component: CashflowPage,
 });
 
-const dailyPLRoute = createRoute({
+const dailyPlRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/daily-profit-loss',
+  path: '/daily-pl',
   component: DailyProfitLossPage,
 });
 
-const matchPLRoute = createRoute({
+const mplRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/match-pl',
+  path: '/mpl',
   component: MatchProfitLossPage,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   lendingRoute,
-  propertiesRoute,
-  netWorthRoute,
+  propertyRoute,
+  networthRoute,
   cashflowRoute,
-  dailyPLRoute,
-  matchPLRoute,
+  dailyPlRoute,
+  mplRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -90,8 +97,15 @@ export default function App() {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <RouterProvider router={router} />
-      <Toaster />
+      <QueryClientProvider client={queryClient}>
+        <IndexedDbGuard>
+          <AuthGate>
+            <ProfileSetupDialog />
+            <RouterProvider router={router} />
+            <Toaster />
+          </AuthGate>
+        </IndexedDbGuard>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

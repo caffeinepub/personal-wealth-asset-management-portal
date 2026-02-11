@@ -1,142 +1,88 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T10:31:19.121Z",
+  "generatedAt": "2026-02-11T11:18:34.230Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 8,
-    "implemented": 8,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-31",
-        "summary": "Remove the Internet Identity authentication requirement so the app is usable fully offline: the UI must load directly into the existing AppShell/routes without blocking on login, while keeping the rest of the UI/feature pages the same.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/auth/AuthGate.tsx",
-          "frontend/src/components/layout/AppShell.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/auth/AuthGate.tsx",
-          "frontend/src/components/layout/AppShell.tsx"
-        ]
-      },
-      {
-        "id": "REQ-32",
-        "summary": "Replace backend-dependent user profile behavior with a local-only profile: persist the display name locally and keep the existing ProfileSetupDialog flow (prompt once when no local name exists; save; do not prompt again once saved).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/storage/profile.ts",
-          "frontend/src/components/auth/ProfileSetupDialog.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/storage/profile.ts",
-          "frontend/src/components/auth/ProfileSetupDialog.tsx"
-        ]
-      },
-      {
-        "id": "REQ-33",
-        "summary": "Implement a local persistence layer using IndexedDB (or equivalent browser local database) to store all module data offline, covering: loans, properties, wealth inputs, cashflow entries, M(P/L) matches, and M(P/L) entries. The stored records must include the same fields currently used by the UI (including IDs and timestamps).",
+        "id": "REQ-48",
+        "summary": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/storage/indexedDb.ts",
-          "frontend/src/storage/ids.ts",
-          "frontend/src/storage/timestamps.ts",
           "frontend/src/storage/loansRepo.ts",
           "frontend/src/storage/propertiesRepo.ts",
-          "frontend/src/storage/wealthInputsRepo.ts",
-          "frontend/src/storage/cashflowRepo.ts",
           "frontend/src/storage/mplRepo.ts"
         ],
         "matchedFiles": [
           "frontend/src/storage/indexedDb.ts",
-          "frontend/src/storage/ids.ts",
-          "frontend/src/storage/timestamps.ts",
           "frontend/src/storage/loansRepo.ts",
           "frontend/src/storage/propertiesRepo.ts",
-          "frontend/src/storage/wealthInputsRepo.ts",
-          "frontend/src/storage/cashflowRepo.ts",
           "frontend/src/storage/mplRepo.ts"
         ]
       },
       {
-        "id": "REQ-34",
-        "summary": "Refactor the feature API hooks to use the new local persistence layer instead of Motoko canister actor calls, without modifying immutable hook files. Update these modules at minimum: lending, properties, net worth, cashflow, daily P/L, and M(P/L). Keep the existing React Query queryKeys structure and ensure query invalidation continues to keep lists/summaries/charts in sync after mutations.",
+        "id": "REQ-49",
+        "summary": "Make IndexedDB storage compatible and consistent by eliminating BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, and indexed fields like matchId), ensuring that data can be written and later read back correctly.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/features/lending/api.ts",
-          "frontend/src/features/properties/api.ts",
-          "frontend/src/features/networth/api.ts",
-          "frontend/src/features/cashflow/api.ts",
-          "frontend/src/features/daily-pl/api.ts",
-          "frontend/src/features/mpl/api.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/features/lending/api.ts",
-          "frontend/src/features/properties/api.ts",
-          "frontend/src/features/networth/api.ts",
-          "frontend/src/features/cashflow/api.ts",
-          "frontend/src/features/daily-pl/api.ts",
-          "frontend/src/features/mpl/api.ts"
-        ]
-      },
-      {
-        "id": "REQ-35",
-        "summary": "Re-implement all derived/aggregate computations to run locally (instead of backend aggregate endpoints), while keeping existing UI outputs the same: net worth summary (including totals from property + lending + wealth inputs), dashboard overview metrics, lending insights chart datasets, and monthly cash flow KPI derived from lending interest logic.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/features/dashboard/api.ts",
-          "frontend/src/storage/aggregates.ts",
-          "frontend/src/features/lending/components/LendingInsights.tsx",
-          "frontend/src/features/networth/components/NetWorthSummaryCards.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/features/dashboard/api.ts",
+          "frontend/src/storage/indexedDb.ts",
+          "frontend/src/storage/mplRepo.ts",
+          "frontend/src/storage/loansRepo.ts",
+          "frontend/src/storage/propertiesRepo.ts",
+          "frontend/src/storage/wealthInputsRepo.ts",
+          "frontend/src/storage/cashflowRepo.ts",
           "frontend/src/storage/aggregates.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/storage/indexedDb.ts",
+          "frontend/src/storage/mplRepo.ts",
+          "frontend/src/storage/loansRepo.ts",
+          "frontend/src/storage/propertiesRepo.ts",
+          "frontend/src/storage/wealthInputsRepo.ts",
+          "frontend/src/storage/cashflowRepo.ts"
         ]
       },
       {
-        "id": "REQ-36",
-        "summary": "Re-implement the Daily Profit/Loss report generation to be computed strictly from locally stored cashflow entries (no backend calls) and keep the same report semantics used by the UI (daywise totals and net profit/loss).",
+        "id": "REQ-50",
+        "summary": "Improve error reporting for failed saves: when a create/save mutation fails, surface a clearer user-facing error message that includes a short actionable hint when storage is unavailable (e.g., blocked storage context), while keeping existing success messages unchanged.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/storage/dailyPl.ts",
-          "frontend/src/features/daily-pl/api.ts"
+          "frontend/src/utils/storageErrors.ts",
+          "frontend/src/features/lending/components/LoanFormCard.tsx",
+          "frontend/src/features/properties/components/PropertyFormCard.tsx",
+          "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "frontend/src/features/mpl/components/EntryFormCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/storage/dailyPl.ts",
-          "frontend/src/features/daily-pl/api.ts"
+          "frontend/src/utils/storageErrors.ts",
+          "frontend/src/features/lending/components/LoanFormCard.tsx",
+          "frontend/src/features/properties/components/PropertyFormCard.tsx",
+          "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "frontend/src/features/mpl/components/EntryFormCard.tsx"
         ]
       },
       {
-        "id": "REQ-37",
-        "summary": "Ensure M(P/L) match management, entry creation, running P/L computation, and match settlement all work fully offline using local persistence, preserving the existing UI behaviors (including settlement freezing matches and preventing new entries).",
+        "id": "REQ-51",
+        "summary": "Add a runtime guard for unsupported execution contexts where IndexedDB is unavailable (or blocked), and show an in-app blocking notice explaining that the app must be run from a local server origin (http://localhost/...) rather than directly opening index.html via file://.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/storage/mplPlSummary.ts",
-          "frontend/src/features/mpl/api.ts",
-          "frontend/src/features/mpl/components/MatchDetailView.tsx"
+          "frontend/src/components/storage/IndexedDbGuard.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/storage/indexedDb.ts",
+          "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt"
         ],
         "matchedFiles": [
-          "frontend/src/storage/mplPlSummary.ts",
-          "frontend/src/features/mpl/api.ts"
-        ]
-      },
-      {
-        "id": "REQ-38",
-        "summary": "Make the app offline-loadable as a web app after the first successful load by adding an offline caching strategy for the static frontend bundle (PWA/service worker or equivalent) so the app shell and routes load without network access.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/public/sw.js",
-          "frontend/src/pwa/registerServiceWorker.ts",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/public/sw.js",
-          "frontend/src/pwa/registerServiceWorker.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/components/storage/IndexedDbGuard.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/storage/indexedDb.ts",
+          "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt"
         ]
       }
     ]
@@ -146,32 +92,22 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/public/sw.js",
+    "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
     "frontend/src/App.tsx",
-    "frontend/src/components/auth/AuthGate.tsx",
-    "frontend/src/components/auth/LoginButton.tsx",
-    "frontend/src/components/auth/ProfileSetupDialog.tsx",
-    "frontend/src/components/layout/AppShell.tsx",
-    "frontend/src/features/cashflow/api.ts",
-    "frontend/src/features/daily-pl/api.ts",
-    "frontend/src/features/dashboard/api.ts",
-    "frontend/src/features/lending/api.ts",
-    "frontend/src/features/mpl/api.ts",
-    "frontend/src/features/networth/api.ts",
-    "frontend/src/features/properties/api.ts",
-    "frontend/src/pwa/registerServiceWorker.ts",
-    "frontend/src/storage/aggregates.ts",
+    "frontend/src/components/storage/IndexedDbGuard.tsx",
+    "frontend/src/features/dashboard/components/QuickActions.tsx",
+    "frontend/src/features/lending/components/LoanFormCard.tsx",
+    "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+    "frontend/src/features/mpl/components/EntryFormCard.tsx",
+    "frontend/src/features/properties/components/PropertyFormCard.tsx",
     "frontend/src/storage/cashflowRepo.ts",
     "frontend/src/storage/dailyPl.ts",
-    "frontend/src/storage/ids.ts",
     "frontend/src/storage/indexedDb.ts",
     "frontend/src/storage/loansRepo.ts",
-    "frontend/src/storage/mplPlSummary.ts",
     "frontend/src/storage/mplRepo.ts",
-    "frontend/src/storage/profile.ts",
     "frontend/src/storage/propertiesRepo.ts",
-    "frontend/src/storage/timestamps.ts",
     "frontend/src/storage/wealthInputsRepo.ts",
+    "frontend/src/utils/storageErrors.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

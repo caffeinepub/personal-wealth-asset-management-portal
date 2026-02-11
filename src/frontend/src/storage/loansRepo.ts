@@ -1,10 +1,13 @@
-import { getAll, put, deleteById } from './indexedDb';
+import { getAll, put, deleteById, deserializeFromStorage } from './indexedDb';
 import { generateId } from './ids';
 import { now } from './timestamps';
 import type { Loan, LoanInput } from '@/backend';
 
+const BIGINT_FIELDS = ['id', 'createdAt', 'updatedAt'];
+
 export async function listLoans(): Promise<Loan[]> {
-  return getAll<Loan>('loans');
+  const raw = await getAll<any>('loans');
+  return raw.map(item => deserializeFromStorage<Loan>(item, BIGINT_FIELDS));
 }
 
 export async function addOrUpdateLoan(input: LoanInput): Promise<bigint> {

@@ -1,5 +1,5 @@
 const DB_NAME = 'WealthPortalDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export interface DBSchema {
   loans: Loan;
@@ -15,21 +15,35 @@ export interface DBSchema {
 import type { Loan, Property, WealthInput, CashflowEntry, Match, Entry } from '@/backend';
 
 let dbInstance: IDBDatabase | null = null;
+let dbError: Error | null = null;
 
 export async function openDB(): Promise<IDBDatabase> {
   if (dbInstance) return dbInstance;
+  if (dbError) throw dbError;
 
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => reject(request.error);
+    request.onerror = () => {
+      const error = request.error || new Error('Failed to open IndexedDB');
+      dbError = error;
+      reject(error);
+    };
+
     request.onsuccess = () => {
       dbInstance = request.result;
       resolve(request.result);
     };
 
+    request.onblocked = () => {
+      const error = new Error('IndexedDB blocked - please close other tabs');
+      dbError = error;
+      reject(error);
+    };
+
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      const oldVersion = event.oldVersion;
 
       // Create object stores
       if (!db.objectStoreNames.contains('loans')) {
@@ -57,8 +71,21 @@ export async function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains('counters')) {
         db.createObjectStore('counters', { keyPath: 'entity' });
       }
+
+      // Migration from v1 to v2: no data migration needed, just version bump
+      // Future writes will use Number format, reads will handle both
     };
   });
+}
+
+export async function isIndexedDBAvailable(): Promise<boolean> {
+  try {
+    await openDB();
+    return true;
+  } catch (error) {
+    console.error('IndexedDB not available:', error);
+    return false;
+  }
 }
 
 export async function getAll<T>(storeName: string): Promise<T[]> {
@@ -69,7 +96,7 @@ export async function getAll<T>(storeName: string): Promise<T[]> {
     const request = store.getAll();
 
     request.onsuccess = () => resolve(request.result as T[]);
-    request.onerror = () => reject(request.error);
+    request.onerror = () => reject(request.error || new Error(`Failed to get all from ${storeName}`));
   });
 }
 
@@ -78,10 +105,11 @@ export async function getById<T>(storeName: string, id: bigint | number): Promis
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(storeName, 'readonly');
     const store = transaction.objectStore(storeName);
-    const request = store.get(Number(id));
+    const numericId = typeof id === 'bigint' ? Number(id) : id;
+    const request = store.get(numericId);
 
     request.onsuccess = () => resolve(request.result || null);
-    request.onerror = () => reject(request.error);
+    request.onerror = () => reject(request.error || new Error(`Failed to get ${storeName} by id ${numericId}`));
   });
 }
 
@@ -90,10 +118,15 @@ export async function put<T>(storeName: string, value: T): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(storeName, 'readwrite');
     const store = transaction.objectStore(storeName);
-    const request = store.put(value);
+    
+    // Convert BigInt fields to Number for IndexedDB storage
+    const serializedValue = serializeForStorage(value);
+    const request = store.put(serializedValue);
 
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () => reject(request.error || new Error(`Failed to put into ${storeName}`));
+    
+    transaction.onerror = () => reject(transaction.error || new Error(`Transaction failed for ${storeName}`));
   });
 }
 
@@ -102,10 +135,11 @@ export async function deleteById(storeName: string, id: bigint | number): Promis
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(storeName, 'readwrite');
     const store = transaction.objectStore(storeName);
-    const request = store.delete(Number(id));
+    const numericId = typeof id === 'bigint' ? Number(id) : id;
+    const request = store.delete(numericId);
 
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () => reject(request.error || new Error(`Failed to delete from ${storeName}`));
   });
 }
 
@@ -119,9 +153,62 @@ export async function getByIndex<T>(
     const transaction = db.transaction(storeName, 'readonly');
     const store = transaction.objectStore(storeName);
     const index = store.index(indexName);
-    const request = index.getAll(value);
+    
+    // Convert BigInt to Number for index lookup
+    const numericValue = typeof value === 'bigint' ? Number(value) : value;
+    const request = index.getAll(numericValue);
 
     request.onsuccess = () => resolve(request.result as T[]);
-    request.onerror = () => reject(request.error);
+    request.onerror = () => reject(request.error || new Error(`Failed to get by index ${indexName} from ${storeName}`));
   });
+}
+
+// Helper to convert BigInt to Number for storage
+function serializeForStorage(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (typeof obj === 'bigint') {
+    return Number(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(serializeForStorage);
+  }
+  
+  if (typeof obj === 'object') {
+    const serialized: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        serialized[key] = serializeForStorage(obj[key]);
+      }
+    }
+    return serialized;
+  }
+  
+  return obj;
+}
+
+// Helper to convert Number back to BigInt for runtime
+export function deserializeFromStorage<T>(obj: any, bigintFields: string[]): T {
+  if (obj === null || obj === undefined) return obj;
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => deserializeFromStorage(item, bigintFields)) as any;
+  }
+  
+  if (typeof obj === 'object') {
+    const deserialized: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (bigintFields.includes(key) && typeof obj[key] === 'number') {
+          deserialized[key] = BigInt(obj[key]);
+        } else {
+          deserialized[key] = obj[key];
+        }
+      }
+    }
+    return deserialized as T;
+  }
+  
+  return obj;
 }

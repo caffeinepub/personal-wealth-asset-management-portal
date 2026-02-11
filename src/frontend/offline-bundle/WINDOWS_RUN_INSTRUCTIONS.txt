@@ -1,0 +1,121 @@
+═══════════════════════════════════════════════════════════════════════════════
+  WEALTH PORTAL - WINDOWS OFFLINE BUNDLE - SETUP INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+IMPORTANT: This application MUST be served from a local web server.
+Opening index.html directly (file://) will NOT work due to browser security
+restrictions on local storage (IndexedDB).
+
+═══════════════════════════════════════════════════════════════════════════════
+  WHY A LOCAL SERVER IS REQUIRED
+═══════════════════════════════════════════════════════════════════════════════
+
+Modern web applications use IndexedDB for local data storage. Browsers disable
+IndexedDB when files are opened directly from the file system (file:// protocol)
+for security reasons.
+
+To use this app offline, you must run it through a local web server that serves
+the files over HTTP (http://localhost:3000).
+
+═══════════════════════════════════════════════════════════════════════════════
+  QUICK START (RECOMMENDED)
+═══════════════════════════════════════════════════════════════════════════════
+
+METHOD 1: Using the Batch Script (Easiest)
+-------------------------------------------
+1. Double-click: start-server-win.bat
+2. A command window will open and start the server
+3. Your browser will automatically open to: http://localhost:3000
+4. Keep the command window open while using the app
+5. Close the command window when done
+
+METHOD 2: Using PowerShell Script
+----------------------------------
+1. Right-click: start-server-win.ps1
+2. Select "Run with PowerShell"
+3. Follow the on-screen instructions
+4. Open your browser to: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════════════════
+  MANUAL SETUP (ALTERNATIVE METHODS)
+═══════════════════════════════════════════════════════════════════════════════
+
+If you have Node.js installed:
+-------------------------------
+1. Open Command Prompt or PowerShell in this folder
+2. Run: npx serve -s . -l 3000
+3. Open browser to: http://localhost:3000
+
+If you have Python installed:
+------------------------------
+Python 3.x:
+1. Open Command Prompt in this folder
+2. Run: python -m http.server 3000
+3. Open browser to: http://localhost:3000
+
+Python 2.x:
+1. Open Command Prompt in this folder
+2. Run: python -m SimpleHTTPServer 3000
+3. Open browser to: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════════════════
+  TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+Problem: "Storage Not Available" error appears
+Solution: Make sure you're accessing via http://localhost:3000 and NOT by
+          opening index.html directly. Restart the server if needed.
+
+Problem: Port 3000 is already in use
+Solution: Close other applications using port 3000, or edit the scripts to
+          use a different port (e.g., 3001, 8080).
+
+Problem: Scripts won't run / "execution policy" error (PowerShell)
+Solution: Run PowerShell as Administrator and execute:
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Problem: Node.js/Python not found
+Solution: Install Node.js from https://nodejs.org/ or Python from
+          https://www.python.org/downloads/
+
+Problem: Browser shows "Cannot GET /"
+Solution: Make sure you're in the correct folder containing index.html
+
+═══════════════════════════════════════════════════════════════════════════════
+  FEATURES & OFFLINE USAGE
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ Fully offline after first load
+✓ All data stored locally in your browser
+✓ No internet connection required after setup
+✓ Data persists between sessions
+✓ Works on Windows 7, 8, 10, 11
+
+Supported Browsers:
+- Chrome / Edge (Recommended)
+- Firefox
+- Opera
+
+═══════════════════════════════════════════════════════════════════════════════
+  DATA & PRIVACY
+═══════════════════════════════════════════════════════════════════════════════
+
+All your financial data is stored locally in your browser's IndexedDB.
+No data is sent to any server or third party.
+
+To backup your data:
+- Use your browser's export/backup features
+- Or copy the browser profile folder
+
+To clear your data:
+- Use browser settings to clear site data for localhost:3000
+
+═══════════════════════════════════════════════════════════════════════════════
+  SUPPORT
+═══════════════════════════════════════════════════════════════════════════════
+
+For issues or questions, please refer to the README.txt file or visit:
+https://caffeine.ai
+
+Built with ❤️ using caffeine.ai
+═══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,8 @@
+{
+  "buildOutputDir": "dist",
+  "outputZipName": "wealth-portal-windows-offline.zip",
+  "defaultPort": 3000,
+  "appName": "Personal Wealth & Asset Management Portal",
+  "version": "1.0.0",
+  "description": "Offline-capable wealth management platform for Windows"
+}

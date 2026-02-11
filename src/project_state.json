@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 11,
-  "summary": "Pivot to an offline-capable version of the portal: keep the same UI/features, but run fully offline with all data stored locally (e.g., IndexedDB/local persistence) instead of using the Motoko/Internet Computer backend. User accepted that a true Windows desktop EXE is not supported and chose an offline web app approach.",
+  "projectStateVersion": 19,
+  "summary": "Shift to a Windows-downloadable version of the offline-capable portal: rebuild the platform so it can be downloaded and run on Windows (e.g., packaged desktop app or Windows-friendly offline bundle), while preserving the existing UI/features and offline/local-data behavior.",
   "architectural_notes": [
     "Frontend: React + Tailwind CSS; responsive, dashboard-centric dark FinTech aesthetic (emerald + gold accents).",
     "Backend: Motoko; support lending, property, and net-worth aggregation data.",
@@ -15,9 +15,13 @@
     "Universal M(P/L) P/L formula per entry: BACK fav => fav += (rate-1)*amount, opposite -= amount; LAY fav => fav -= (rate-1)*amount, opposite += amount."
   ],
   "known_issues": [
-    "Assistant previously returned an error ('Sorry, I'm not firing on all cylinders right now') during module definition; user requested retry and proceeded."
+    "Assistant previously returned an error ('Sorry, I'm not firing on all cylinders right now') during module definition; user requested retry and proceeded.",
+    "Deployment/build encountered an error ('We hit a snag during deployment'); user requested retry.",
+    "Caffeine builder shows no draft available ('You don’t have a draft yet').",
+    "App error observed: 'Failed to save entry' when adding a Cashflow entry.",
+    "App error observed: immediate popup failures on create actions across modules (\"Failed to save loan\", similar failures for properties and creating matches)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-the-react-frontend-information-architecture-with-dashboard-centric-navigation-for-executive-dashboard-landing-money-lending-interest-tracker-property-ledger-and-net-worth-aggregator-screens",
@@ -242,6 +246,110 @@
         "REQ-38"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-a-clear-reproducible-offline-distribution-workflow-that-outputs-a-downloadable-bundle-zip-containing-the-built-static-frontend-assets-and-a-short-set-of-instructions-for-running-it-locally",
+      "title": "Create a clear, reproducible offline distribution workflow that outputs a downloadable bundle (zip) containing the built static frontend assets and a short set of instructions for running it locally.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-offline-build-installable-as-a-pwa-by-adding-a-web-app-manifest-and-linking-it-from-the-html-entrypoint-including-app-name-start-url-display-mode-theme-background-colors-and-icon-references",
+      "title": "Make the offline build installable as a PWA by adding a Web App Manifest and linking it from the HTML entrypoint, including app name, start URL, display mode, theme/background colors, and icon references.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-upgrade-the-service-worker-offline-caching-behavior-so-that-after-a-first-successful-load-subsequent-visits-can-fully-load-the-app-shell-and-routes-without-network-access-including-required-js-css-assets-not-only-and-index-html",
+      "title": "Upgrade the service worker offline caching behavior so that after a first successful load, subsequent visits can fully load the app shell and routes without network access, including required JS/CSS assets (not only / and /index.html).",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-required-pwa-icon-image-assets-as-static-files-and-reference-them-from-the-manifest",
+      "title": "Add the required PWA icon image assets as static files and reference them from the manifest.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-re-run-the-full-build-and-deployment-process-and-identify-the-exact-failing-step-frontend-build-asset-bundling-service-worker-public-asset-handling-or-canister-deployment-capture-and-include-the-complete-error-output-in-the-build-logs-so-the-failure-is-reproducible",
+      "title": "Re-run the full build and deployment process and identify the exact failing step (frontend build, asset bundling, service worker/public asset handling, or canister deployment). Capture and include the complete error output in the build logs so the failure is reproducible.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-underlying-issue-causing-deployment-to-fail-ensuring-the-application-successfully-builds-and-deploys-with-the-current-offline-first-frontend-react-tailwind-and-existing-backend-canister-structure-unchanged-unless-required-by-the-fix",
+      "title": "Fix the underlying issue causing deployment to fail, ensuring the application successfully builds and deploys with the current offline-first frontend (React/Tailwind) and existing backend canister structure unchanged unless required by the fix.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-produce-a-windows-friendly-downloadable-distribution-bundle-zip-that-contains-the-built-static-frontend-assets-for-the-entire-platform-so-the-app-can-be-downloaded-and-run-locally-on-a-windows-machine-while-preserving-all-existing-offline-local-data-behavior",
+      "title": "Produce a Windows-friendly downloadable distribution bundle (ZIP) that contains the built static frontend assets for the entire platform so the app can be downloaded and run locally on a Windows machine while preserving all existing offline/local-data behavior.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-windows-specific-run-instructions-inside-the-downloadable-bundle-including-step-by-step-guidance-for-starting-a-local-static-server-on-windows-and-opening-the-app-plus-a-troubleshooting-section-for-common-issues-e-g-file-not-supported-port-blocked-service-worker-caching-behavior",
+      "title": "Add Windows-specific run instructions inside the downloadable bundle, including step-by-step guidance for starting a local static server on Windows and opening the app, plus a troubleshooting section for common issues (e.g., \"file://\" not supported, port blocked, service worker caching behavior).",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-include-optional-convenience-launch-scripts-for-windows-in-the-downloadable-bundle-e-g-bat-and-or-powershell-that-start-a-local-static-server-for-the-bundled-assets-with-clear-console-output-indicating-the-local-url-to-open",
+      "title": "Include optional convenience launch scripts for Windows in the downloadable bundle (e.g., .bat and/or PowerShell) that start a local static server for the bundled assets, with clear console output indicating the local URL to open.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-local-persistence-layer-so-that-creating-saving-records-works-reliably-across-the-app-at-minimum-saving-a-new-loan-saving-a-new-property-and-creating-a-new-match-without-throwing-errors",
+      "title": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-indexeddb-storage-compatible-and-consistent-by-eliminating-bigint-storage-key-mismatches-in-indexeddb-reads-writes-ids-timestamps-and-indexed-fields-like-matchid-ensuring-that-data-can-be-written-and-later-read-back-correctly",
+      "title": "Make IndexedDB storage compatible and consistent by eliminating BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, and indexed fields like matchId), ensuring that data can be written and later read back correctly.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-error-reporting-for-failed-saves-when-a-create-save-mutation-fails-surface-a-clearer-user-facing-error-message-that-includes-a-short-actionable-hint-when-storage-is-unavailable-e-g-blocked-storage-context-while-keeping-existing-success-messages-unchanged",
+      "title": "Improve error reporting for failed saves: when a create/save mutation fails, surface a clearer user-facing error message that includes a short actionable hint when storage is unavailable (e.g., blocked storage context), while keeping existing success messages unchanged.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-runtime-guard-for-unsupported-execution-contexts-where-indexeddb-is-unavailable-or-blocked-and-show-an-in-app-blocking-notice-explaining-that-the-app-must-be-run-from-a-local-server-origin-http-localhost-rather-than-directly-opening-index-html-via-file",
+      "title": "Add a runtime guard for unsupported execution contexts where IndexedDB is unavailable (or blocked), and show an in-app blocking notice explaining that the app must be run from a local server origin (http://localhost/...) rather than directly opening index.html via file://.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -406,6 +514,18 @@
     {
       "id": "AR-31",
       "summary": "Refactor data-fetching layer to use offline local repositories (IndexedDB) instead of Motoko/React Query remote calls; ensure all lists, charts, KPIs, and derived reports update correctly from local data.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Prepare the offline web app for download/distribution packaging (e.g., build a downloadable bundle/zip or installable package)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Rebuild/package the entire offline platform for Windows downloadability (Windows runnable distribution such as a packaged desktop app or Windows-friendly offline bundle)",
       "reqIds": [],
       "status": "pending"
     }

@@ -13,7 +13,7 @@ export default function QuickActions() {
       </CardHeader>
       <CardContent className="space-y-3">
         <Button
-          onClick={() => navigate({ to: '/lending', search: { action: 'add' } })}
+          onClick={() => navigate({ to: '/lending' })}
           className="w-full justify-start gap-2"
           variant="outline"
         >
@@ -22,7 +22,7 @@ export default function QuickActions() {
           Add New Loan
         </Button>
         <Button
-          onClick={() => navigate({ to: '/properties', search: { action: 'add' } })}
+          onClick={() => navigate({ to: '/property' })}
           className="w-full justify-start gap-2"
           variant="outline"
         >

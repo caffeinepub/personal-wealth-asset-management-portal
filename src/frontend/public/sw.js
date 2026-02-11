@@ -57,9 +57,19 @@ self.addEventListener('fetch', (event) => {
         return response;
       }).catch(() => {
         // Return cached index.html for navigation requests when offline
+        // This ensures SPA routing works under local static servers
         if (request.mode === 'navigate') {
-          return caches.match('/index.html');
+          return caches.match('/index.html').then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // Fallback to root if index.html not cached
+            return caches.match('/');
+          });
         }
+        
+        // For non-navigation requests, try to return any cached version
+        return caches.match(request);
       });
     })
   );

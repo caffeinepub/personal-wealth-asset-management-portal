@@ -1,10 +1,13 @@
-import { getAll, put, deleteById } from './indexedDb';
+import { getAll, put, deleteById, deserializeFromStorage } from './indexedDb';
 import { generateId } from './ids';
 import { now } from './timestamps';
 import type { CashflowEntry, CashflowInput, CashflowSummary } from '@/backend';
 
+const BIGINT_FIELDS = ['id', 'createdAt', 'updatedAt'];
+
 export async function listCashflowEntries(): Promise<CashflowEntry[]> {
-  return getAll<CashflowEntry>('cashflowEntries');
+  const raw = await getAll<any>('cashflowEntries');
+  return raw.map(item => deserializeFromStorage<CashflowEntry>(item, BIGINT_FIELDS));
 }
 
 export async function addOrUpdateCashflowEntry(input: CashflowInput): Promise<bigint> {

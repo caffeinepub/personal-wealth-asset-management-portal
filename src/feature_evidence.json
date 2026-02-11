@@ -2,11 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-internet-identity-authentication-requirement-so-the-app-is-usable-fully-offline-the-ui-must-load-directly-into-the-existing-appshell-routes-without-blocking-on-login-while-keeping-the-rest-of-the-ui-feature-pages-the-same",
-      "featureTitle": "Remove the Internet Identity authentication requirement so the app is usable fully offline: the UI must load directly into the existing AppShell/routes without blocking on login, while keeping the rest of the UI/feature pages the same.",
+      "featureId": "feature-fix-the-local-persistence-layer-so-that-creating-saving-records-works-reliably-across-the-app-at-minimum-saving-a-new-loan-saving-a-new-property-and-creating-a-new-match-without-throwing-errors",
+      "featureTitle": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors.",
       "files": [
-        "frontend/src/components/auth/AuthGate.tsx",
-        "frontend/src/components/layout/AppShell.tsx"
+        "frontend/src/storage/indexedDb.ts",
+        "frontend/src/storage/loansRepo.ts",
+        "frontend/src/storage/mplRepo.ts",
+        "frontend/src/storage/propertiesRepo.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,41 +19,19 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-31"
+        "REQ-48"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-replace-backend-dependent-user-profile-behavior-with-a-local-only-profile-persist-the-display-name-locally-and-keep-the-existing-profilesetupdialog-flow-prompt-once-when-no-local-name-exists-save-do-not-prompt-again-once-saved",
-      "featureTitle": "Replace backend-dependent user profile behavior with a local-only profile: persist the display name locally and keep the existing ProfileSetupDialog flow (prompt once when no local name exists; save; do not prompt again once saved).",
-      "files": [
-        "frontend/src/components/auth/ProfileSetupDialog.tsx",
-        "frontend/src/storage/profile.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-32"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-a-local-persistence-layer-using-indexeddb-or-equivalent-browser-local-database-to-store-all-module-data-offline-covering-loans-properties-wealth-inputs-cashflow-entries-m-p-l-matches-and-m-p-l-entries-the-stored-records-must-include-the-same-fields-currently-used-by-the-ui-including-ids-and-timestamps",
-      "featureTitle": "Implement a local persistence layer using IndexedDB (or equivalent browser local database) to store all module data offline, covering: loans, properties, wealth inputs, cashflow entries, M(P/L) matches, and M(P/L) entries. The stored records must include the same fields currently used by the UI (including IDs and timestamps).",
+      "featureId": "feature-make-indexeddb-storage-compatible-and-consistent-by-eliminating-bigint-storage-key-mismatches-in-indexeddb-reads-writes-ids-timestamps-and-indexed-fields-like-matchid-ensuring-that-data-can-be-written-and-later-read-back-correctly",
+      "featureTitle": "Make IndexedDB storage compatible and consistent by eliminating BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, and indexed fields like matchId), ensuring that data can be written and later read back correctly.",
       "files": [
         "frontend/src/storage/cashflowRepo.ts",
-        "frontend/src/storage/ids.ts",
         "frontend/src/storage/indexedDb.ts",
         "frontend/src/storage/loansRepo.ts",
         "frontend/src/storage/mplRepo.ts",
         "frontend/src/storage/propertiesRepo.ts",
-        "frontend/src/storage/timestamps.ts",
         "frontend/src/storage/wealthInputsRepo.ts"
       ],
       "components": [
@@ -63,20 +43,19 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-33"
+        "REQ-49"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-refactor-the-feature-api-hooks-to-use-the-new-local-persistence-layer-instead-of-motoko-canister-actor-calls-without-modifying-immutable-hook-files-update-these-modules-at-minimum-lending-properties-net-worth-cashflow-daily-p-l-and-m-p-l-keep-the-existing-react-query-querykeys-structure-and-ensure-query-invalidation-continues-to-keep-lists-summaries-charts-in-sync-after-mutations",
-      "featureTitle": "Refactor the feature API hooks to use the new local persistence layer instead of Motoko canister actor calls, without modifying immutable hook files. Update these modules at minimum: lending, properties, net worth, cashflow, daily P/L, and M(P/L). Keep the existing React Query queryKeys structure and ensure query invalidation continues to keep lists/summaries/charts in sync after mutations.",
+      "featureId": "feature-improve-error-reporting-for-failed-saves-when-a-create-save-mutation-fails-surface-a-clearer-user-facing-error-message-that-includes-a-short-actionable-hint-when-storage-is-unavailable-e-g-blocked-storage-context-while-keeping-existing-success-messages-unchanged",
+      "featureTitle": "Improve error reporting for failed saves: when a create/save mutation fails, surface a clearer user-facing error message that includes a short actionable hint when storage is unavailable (e.g., blocked storage context), while keeping existing success messages unchanged.",
       "files": [
-        "frontend/src/features/cashflow/api.ts",
-        "frontend/src/features/daily-pl/api.ts",
-        "frontend/src/features/lending/api.ts",
-        "frontend/src/features/mpl/api.ts",
-        "frontend/src/features/networth/api.ts",
-        "frontend/src/features/properties/api.ts"
+        "frontend/src/features/lending/components/LoanFormCard.tsx",
+        "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+        "frontend/src/features/mpl/components/EntryFormCard.tsx",
+        "frontend/src/features/properties/components/PropertyFormCard.tsx",
+        "frontend/src/utils/storageErrors.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -87,77 +66,18 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-34"
+        "REQ-50"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-re-implement-all-derived-aggregate-computations-to-run-locally-instead-of-backend-aggregate-endpoints-while-keeping-existing-ui-outputs-the-same-net-worth-summary-including-totals-from-property-lending-wealth-inputs-dashboard-overview-metrics-lending-insights-chart-datasets-and-monthly-cash-flow-kpi-derived-from-lending-interest-logic",
-      "featureTitle": "Re-implement all derived/aggregate computations to run locally (instead of backend aggregate endpoints), while keeping existing UI outputs the same: net worth summary (including totals from property + lending + wealth inputs), dashboard overview metrics, lending insights chart datasets, and monthly cash flow KPI derived from lending interest logic.",
+      "featureId": "feature-add-a-runtime-guard-for-unsupported-execution-contexts-where-indexeddb-is-unavailable-or-blocked-and-show-an-in-app-blocking-notice-explaining-that-the-app-must-be-run-from-a-local-server-origin-http-localhost-rather-than-directly-opening-index-html-via-file",
+      "featureTitle": "Add a runtime guard for unsupported execution contexts where IndexedDB is unavailable (or blocked), and show an in-app blocking notice explaining that the app must be run from a local server origin (http://localhost/...) rather than directly opening index.html via file://.",
       "files": [
-        "frontend/src/features/dashboard/api.ts",
-        "frontend/src/storage/aggregates.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-35"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-re-implement-the-daily-profit-loss-report-generation-to-be-computed-strictly-from-locally-stored-cashflow-entries-no-backend-calls-and-keep-the-same-report-semantics-used-by-the-ui-daywise-totals-and-net-profit-loss",
-      "featureTitle": "Re-implement the Daily Profit/Loss report generation to be computed strictly from locally stored cashflow entries (no backend calls) and keep the same report semantics used by the UI (daywise totals and net profit/loss).",
-      "files": [
-        "frontend/src/features/daily-pl/api.ts",
-        "frontend/src/storage/dailyPl.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-36"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-m-p-l-match-management-entry-creation-running-p-l-computation-and-match-settlement-all-work-fully-offline-using-local-persistence-preserving-the-existing-ui-behaviors-including-settlement-freezing-matches-and-preventing-new-entries",
-      "featureTitle": "Ensure M(P/L) match management, entry creation, running P/L computation, and match settlement all work fully offline using local persistence, preserving the existing UI behaviors (including settlement freezing matches and preventing new entries).",
-      "files": [
-        "frontend/src/features/mpl/api.ts",
-        "frontend/src/storage/mplPlSummary.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-37"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-make-the-app-offline-loadable-as-a-web-app-after-the-first-successful-load-by-adding-an-offline-caching-strategy-for-the-static-frontend-bundle-pwa-service-worker-or-equivalent-so-the-app-shell-and-routes-load-without-network-access",
-      "featureTitle": "Make the app offline-loadable as a web app after the first successful load by adding an offline caching strategy for the static frontend bundle (PWA/service worker or equivalent) so the app shell and routes load without network access.",
-      "files": [
-        "frontend/public/sw.js",
+        "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
         "frontend/src/App.tsx",
-        "frontend/src/pwa/registerServiceWorker.ts"
+        "frontend/src/components/storage/IndexedDbGuard.tsx",
+        "frontend/src/storage/indexedDb.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -168,7 +88,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-51"
       ],
       "confidence": "high"
     }

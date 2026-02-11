@@ -1,239 +1,148 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Offline-capable wealth portal with IndexedDB storage and PWA caching",
+  "title": "Fix offline IndexedDB persistence for Loans, Properties, and M(P/L) Matches",
   "requirements": [
     {
-      "id": "REQ-31",
-      "summary": "Remove Internet Identity login gating so routes and pages load offline without blocking on authentication.",
+      "id": "REQ-48",
+      "summary": "Stabilize the offline persistence layer so create/save for Loans, Properties, and Matches works reliably and updates UI lists via existing React Query invalidation (no refresh needed).",
       "acceptanceCriteria": [
-        "Opening the app with no network connection does not show an Internet Identity login screen and does not block access to any module pages.",
-        "No feature page throws an 'Actor not available' error during normal navigation when offline."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/auth/AuthGate.tsx",
-          "operation": "modify",
-          "description": "Convert AuthGate into a non-blocking wrapper that always renders children (no full-screen login/initializing screens) so the app loads directly into the existing AppShell/routes while offline."
-        },
-        {
-          "path": "frontend/src/components/layout/AppShell.tsx",
-          "operation": "modify",
-          "description": "Ensure the header does not require authentication to render; keep existing navigation and layout intact while allowing the app to be used without logging in."
-        }
-      ]
-    },
-    {
-      "id": "REQ-32",
-      "summary": "Replace backend-dependent user profile with a local-only profile persisted on device while keeping the existing ProfileSetupDialog flow.",
-      "acceptanceCriteria": [
-        "On first load with no local profile, the profile dialog appears and saving a name persists it locally.",
-        "On subsequent loads, the profile dialog does not appear and the app remains usable offline."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/storage/profile.ts",
-          "operation": "create",
-          "description": "Add local-only profile persistence (read/write display name) backed by the app’s IndexedDB/local database layer."
-        },
-        {
-          "path": "frontend/src/components/auth/ProfileSetupDialog.tsx",
-          "operation": "modify",
-          "description": "Refactor ProfileSetupDialog to use the local profile store (instead of useActor + backend calls) while preserving the existing prompt-once/save/do-not-prompt-again behavior and the existing queryKeys.userProfile.current() cache key."
-        }
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "summary": "Implement IndexedDB-based persistence for all module entities (loans, properties, wealth inputs, cashflow entries, M(P/L) matches, M(P/L) entries) including IDs and timestamps.",
-      "acceptanceCriteria": [
-        "Creating, editing, and deleting records in each module persists across page reloads without a network connection.",
-        "IDs are unique per entity type and stable across reloads.",
-        "Timestamps required by the UI are stored and updated on create/update."
+        "On a fresh load, adding a Loan succeeds and shows the existing success toast (not the failure toast), and the new loan appears in the Loans table without requiring a refresh.",
+        "Adding a Property succeeds and the new property appears in the Property grid/list without requiring a refresh.",
+        "Creating a new M(P/L) Match succeeds and the new match appears in the match list without requiring a refresh.",
+        "No unhandled promise rejections appear in the browser console during these create actions."
       ],
       "file_operations": [
         {
           "path": "frontend/src/storage/indexedDb.ts",
-          "operation": "create",
-          "description": "Create an IndexedDB wrapper responsible for database open/upgrade, typed object stores for each entity type, and generic get/list/put/delete helpers."
-        },
-        {
-          "path": "frontend/src/storage/ids.ts",
-          "operation": "create",
-          "description": "Implement local ID generation with per-entity counters (stored in IndexedDB) to produce unique, stable bigint IDs per entity type across reloads."
-        },
-        {
-          "path": "frontend/src/storage/timestamps.ts",
-          "operation": "create",
-          "description": "Add helpers to generate/update bigint timestamps for createdAt/updatedAt fields in a consistent manner across all locally persisted entities."
+          "operation": "modify",
+          "description": "Fix IndexedDB CRUD helpers to use consistent key types (remove Number(...) coercions), improve transaction/request error propagation, and ensure create/write operations do not throw due to key/type mismatches."
         },
         {
           "path": "frontend/src/storage/loansRepo.ts",
-          "operation": "create",
-          "description": "Add a loans repository implementing local list/get/addOrUpdate/delete operations that preserve UI-required fields (id, createdAt, updatedAt, etc.)."
+          "operation": "modify",
+          "description": "Update Loan persistence to write/read with a consistent IndexedDB-safe representation for IDs/timestamps and return correct runtime types so list + invalidation reflects new records immediately."
         },
         {
           "path": "frontend/src/storage/propertiesRepo.ts",
-          "operation": "create",
-          "description": "Add a properties repository implementing local list/get/addOrUpdate/delete operations with stable IDs and timestamps."
-        },
-        {
-          "path": "frontend/src/storage/wealthInputsRepo.ts",
-          "operation": "create",
-          "description": "Add a wealth inputs repository implementing local list/get/addOrUpdate/delete operations with stable IDs and timestamps."
-        },
-        {
-          "path": "frontend/src/storage/cashflowRepo.ts",
-          "operation": "create",
-          "description": "Add a cashflow repository implementing local list/get/addOrUpdate/delete operations with stable IDs and timestamps."
+          "operation": "modify",
+          "description": "Update Property persistence to write/read with a consistent IndexedDB-safe representation for IDs/timestamps and return correct runtime types so list + invalidation reflects new records immediately."
         },
         {
           "path": "frontend/src/storage/mplRepo.ts",
-          "operation": "create",
-          "description": "Add an M(P/L) repository implementing local match and entry persistence, including match settlement fields (status/winner/settledAt) and required timestamps."
+          "operation": "modify",
+          "description": "Fix Match + Entry persistence and retrieval so match creation and listing entries for a match work reliably and invalidate the correct React Query caches without requiring refresh."
         }
       ]
     },
     {
-      "id": "REQ-34",
-      "summary": "Refactor feature React Query hooks to use local persistence instead of actor calls, keeping queryKeys structure and invalidation behavior, without modifying immutable hook files.",
+      "id": "REQ-49",
+      "summary": "Make IndexedDB storage consistent by eliminating BigInt storage/key mismatches for IDs, timestamps, and indexed fields (e.g., entries.matchId), including safe read-back and timestamp comparisons.",
       "acceptanceCriteria": [
-        "All existing pages load their data via React Query without requiring an actor/identity.",
-        "Create/update/delete operations update the visible UI immediately (via invalidation/refetch or cache updates) and remain correct after reload.",
-        "No changes are made to the immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*)."
+        "All IndexedDB object stores used by Loans/Properties/M(P/L) can successfully persist records with their required fields, and subsequent list queries return the newly-created records.",
+        "M(P/L) entries store and retrieve correctly by matchId index (creating a match, adding an entry, and listing entries returns the new entry for that match).",
+        "Aggregations that compare timestamps (e.g., selecting the latest wealth inputs) work correctly with the persisted timestamp type."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/features/lending/api.ts",
+          "path": "frontend/src/storage/indexedDb.ts",
           "operation": "modify",
-          "description": "Replace useActor-backed queries/mutations with local loans repository operations while keeping existing React Query queryKeys usage and invalidateLoans(queryClient) behavior."
+          "description": "Bump the IndexedDB version and add a migration path to normalize persisted bigint-like fields (IDs/timestamps/index fields) into a single consistent storage type, ensuring future reads/queries use the same type."
         },
         {
-          "path": "frontend/src/features/properties/api.ts",
+          "path": "frontend/src/storage/mplRepo.ts",
           "operation": "modify",
-          "description": "Replace useActor-backed queries/mutations with local properties repository operations while keeping existing queryKeys and invalidateProperties(queryClient) behavior."
+          "description": "Ensure entries are written with an IndexedDB-index-compatible matchId type and listEntries queries by the same exact type, preventing index lookups from failing silently."
         },
         {
-          "path": "frontend/src/features/networth/api.ts",
+          "path": "frontend/src/storage/loansRepo.ts",
           "operation": "modify",
-          "description": "Replace useActor-backed wealth input list/mutation and net worth aggregate query with local repositories and local aggregate computation while preserving queryKeys.aggregates.* usage."
+          "description": "Normalize loan id/createdAt/updatedAt persistence to the same storage type used across repos, and deserialize back to runtime bigints so comparisons and formatting remain correct."
         },
         {
-          "path": "frontend/src/features/cashflow/api.ts",
+          "path": "frontend/src/storage/propertiesRepo.ts",
           "operation": "modify",
-          "description": "Replace useActor-backed cashflow list/summary/mutations with local cashflow repository + local summary computation while keeping queryKeys.cashflow.* and invalidateCashflow(queryClient) behavior."
+          "description": "Normalize property id/acquisitionDate/createdAt/updatedAt persistence to the same storage type used across repos, and deserialize back to runtime bigints for correct date handling."
         },
         {
-          "path": "frontend/src/features/daily-pl/api.ts",
+          "path": "frontend/src/storage/wealthInputsRepo.ts",
           "operation": "modify",
-          "description": "Replace backend report query with a local computation sourced from locally stored cashflow entries while keeping queryKeys.dailyPL.report()."
+          "description": "Normalize wealth-input id/createdAt/updatedAt persistence and deserialization so timestamp comparisons (latest updatedAt) remain correct after reading from IndexedDB."
         },
         {
-          "path": "frontend/src/features/mpl/api.ts",
+          "path": "frontend/src/storage/cashflowRepo.ts",
           "operation": "modify",
-          "description": "Replace useActor-backed match/entry/plSummary/settle mutations with local M(P/L) repository operations while keeping existing queryKeys.mpl.* structure and invalidation behavior."
-        }
-      ]
-    },
-    {
-      "id": "REQ-35",
-      "summary": "Re-implement all derived/aggregate computations locally while preserving existing UI outputs for net worth, dashboard metrics, lending insights datasets, and monthly cash flow KPI logic.",
-      "acceptanceCriteria": [
-        "Dashboard overview loads and displays without network connectivity and reflects locally stored loans/properties/wealth inputs.",
-        "Lending Insights charts render based on locally stored loans and match the existing calculation behavior (including tenure + monthly/yearly toggle usage already present in the UI).",
-        "Net Worth page totals correctly incorporate the latest local wealth inputs plus locally stored property and lending totals."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/features/dashboard/api.ts",
-          "operation": "modify",
-          "description": "Compute dashboard overview metrics from local repositories (loans/properties/wealth inputs) and keep the existing monthlyCashFlow interest logic and queryKeys.dashboard.overview() usage."
+          "description": "Normalize cashflow entry id/createdAt/updatedAt persistence and deserialization so daily P/L grouping logic operates on correct bigint timestamps after reading from IndexedDB."
         },
         {
           "path": "frontend/src/storage/aggregates.ts",
-          "operation": "create",
-          "description": "Add local aggregate helpers for totals used by dashboard and net worth (property total, lending total, wealth input total, net worth total) to match current UI behavior."
-        },
-        {
-          "path": "frontend/src/features/lending/components/LendingInsights.tsx",
           "operation": "modify",
-          "description": "Verify Lending Insights uses the locally sourced loans data via React Query and continues to render the same datasets/behaviors without any backend dependency."
-        },
-        {
-          "path": "frontend/src/features/networth/components/NetWorthSummaryCards.tsx",
-          "operation": "modify",
-          "description": "Ensure Net Worth summary cards remain consistent with the locally computed aggregate outputs and handle offline-first loading states cleanly."
+          "description": "Ensure aggregate computations that compare timestamps rely on correctly-deserialized bigint timestamps from storage (no mixed string/bigint comparisons)."
         }
       ]
     },
     {
-      "id": "REQ-36",
-      "summary": "Compute Daily Profit/Loss report strictly from locally stored cashflow entries with the same report semantics as the current UI.",
+      "id": "REQ-50",
+      "summary": "Improve user-facing save error toasts with actionable hints when storage is unavailable, while preserving existing success toasts; ensure underlying errors are logged for debugging without crashing UI.",
       "acceptanceCriteria": [
-        "Daily Profit/Loss page renders a report while offline and updates correctly when cashflow entries are added/edited/deleted.",
-        "Only cashflow-derived data is shown/used for Daily P/L computations."
+        "If a save fails, the toast/error message is still in English and includes a brief reason/hint (where available) instead of only a generic 'Failed to save …' message.",
+        "The console log includes the underlying error object (or error message) for debugging, and the UI does not crash."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/storage/dailyPl.ts",
+          "path": "frontend/src/utils/storageErrors.ts",
           "operation": "create",
-          "description": "Implement local Daily P/L report generation that groups cashflow entries daywise and returns totals/net profit-loss in the same shape expected by the UI."
+          "description": "Add a small helper to convert storage/IndexedDB errors into clear English messages with actionable hints (e.g., blocked storage context), while allowing the caller to keep existing success messages unchanged."
         },
         {
-          "path": "frontend/src/features/daily-pl/api.ts",
+          "path": "frontend/src/features/lending/components/LoanFormCard.tsx",
           "operation": "modify",
-          "description": "Update the Daily P/L React Query hook to call the local daily report generator using locally stored cashflow entries (no backend calls), keeping queryKeys.dailyPL.report() intact."
+          "description": "Use the new storage error helper to show a clearer toast on save failure (keep the existing success toast text unchanged) and log the full underlying error object to the console."
+        },
+        {
+          "path": "frontend/src/features/properties/components/PropertyFormCard.tsx",
+          "operation": "modify",
+          "description": "Use the new storage error helper to show a clearer toast on save failure (keep the existing success toast text unchanged) and log the full underlying error object to the console."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "operation": "modify",
+          "description": "Use the new storage error helper to show a clearer toast on create failure (keep the existing success toast text unchanged) and log the full underlying error object to the console."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/EntryFormCard.tsx",
+          "operation": "modify",
+          "description": "Improve failure toast(s) for adding an entry by using the same storage error helper and logging the underlying error, preventing generic failures when IndexedDB/index lookups fail."
         }
       ]
     },
     {
-      "id": "REQ-37",
-      "summary": "Make M(P/L) match lifecycle, entries, running P/L summary, and settlement fully offline with persistence and settlement freezing behavior preserved.",
+      "id": "REQ-51",
+      "summary": "Add a runtime guard that detects when IndexedDB cannot be opened (e.g., file:// or blocked context) and shows a blocking in-app notice instructing users to run via localhost/local server scripts.",
       "acceptanceCriteria": [
-        "Matches can be created, selected, and persist across reloads offline.",
-        "Entries can be added to a match and the running P/L summary updates correctly after each entry (using the existing formula behavior).",
-        "After settling a match, the match is frozen (no new entries possible) and the winner/settled timestamp persist across reloads."
+        "When the app is opened in a context where IndexedDB cannot be opened, the app shows a clear English message explaining the issue and how to fix it (run via the provided Windows local server scripts / localhost), instead of allowing silent failures on Save/Create.",
+        "When opened in a normal localhost-served context, the guard does not appear and normal app usage is unaffected."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/storage/mplPlSummary.ts",
+          "path": "frontend/src/components/storage/IndexedDbGuard.tsx",
           "operation": "create",
-          "description": "Add local computation for M(P/L) PLSummary derived from locally stored match + entries, aligned with the existing formula behavior used by the UI."
-        },
-        {
-          "path": "frontend/src/features/mpl/api.ts",
-          "operation": "modify",
-          "description": "Ensure match creation, entry creation, match detail, entries listing, P/L summary, and settlement use local persistence; enforce settlement freeze semantics by preventing new entry mutations for settled matches and persisting winner/settledAt."
-        },
-        {
-          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
-          "operation": "modify",
-          "description": "Ensure the UI correctly reflects locally persisted match status and continues to disable entry creation when a match is settled (freeze behavior) while offline."
-        }
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "summary": "Add offline caching for the static frontend bundle so the app loads and routes work offline after one successful online load.",
-      "acceptanceCriteria": [
-        "After loading the app once online, the user can refresh and navigate core routes while offline and the app still loads.",
-        "Offline caching does not break existing routing (TanStack Router) or theming (dark mode)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/sw.js",
-          "operation": "create",
-          "description": "Implement a service worker that precaches the app shell assets and uses a navigation fallback to the cached index.html while applying a safe cache strategy for same-origin static assets."
-        },
-        {
-          "path": "frontend/src/pwa/registerServiceWorker.ts",
-          "operation": "create",
-          "description": "Add a small helper to register the service worker on supported browsers and handle updates without disrupting normal navigation."
+          "description": "Create a blocking guard component that attempts to open IndexedDB at runtime; if it fails, render an in-app notice explaining that the app must be served from a local server origin (http://localhost/...) and not opened via file://."
         },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Wire service worker registration into app startup (without changing routing structure) so the app becomes offline-loadable after the first successful online load."
+          "description": "Wire the IndexedDbGuard into the root route composition so the notice blocks normal screens only when IndexedDB is unavailable, without adding new routes or changing navigation structure."
+        },
+        {
+          "path": "frontend/src/storage/indexedDb.ts",
+          "operation": "modify",
+          "description": "Expose/strengthen IndexedDB open error signals (including blocked/unsupported contexts) so the runtime guard can reliably detect and display the blocking notice."
+        },
+        {
+          "path": "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
+          "operation": "modify",
+          "description": "Align the in-app guard message wording with the existing Windows local server instructions (English), reinforcing the required localhost serving approach."
         }
       ]
     }

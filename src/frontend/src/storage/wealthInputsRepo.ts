@@ -1,10 +1,13 @@
-import { getAll, put, deleteById } from './indexedDb';
+import { getAll, put, deleteById, deserializeFromStorage } from './indexedDb';
 import { generateId } from './ids';
 import { now } from './timestamps';
 import type { WealthInput, WealthInputInput } from '@/backend';
 
+const BIGINT_FIELDS = ['id', 'createdAt', 'updatedAt'];
+
 export async function listWealthInputs(): Promise<WealthInput[]> {
-  return getAll<WealthInput>('wealthInputs');
+  const raw = await getAll<any>('wealthInputs');
+  return raw.map(item => deserializeFromStorage<WealthInput>(item, BIGINT_FIELDS));
 }
 
 export async function addOrUpdateWealthInput(input: WealthInputInput): Promise<bigint> {

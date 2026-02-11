@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAddOrUpdateProperty } from '../api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { getStorageErrorMessage, logStorageError } from '@/utils/storageErrors';
 import type { Property } from '@/backend';
 
 interface PropertyFormCardProps {
@@ -64,8 +65,9 @@ export default function PropertyFormCard({ editingProperty, onSuccess }: Propert
       
       onSuccess?.();
     } catch (error) {
-      toast.error('Failed to save property');
-      console.error(error);
+      logStorageError('save property', error);
+      const errorMessage = getStorageErrorMessage(error);
+      toast.error(errorMessage);
     }
   };
 

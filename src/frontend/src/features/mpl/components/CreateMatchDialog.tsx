@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Loader2 } from 'lucide-react';
 import { useCreateMatch } from '../api';
 import { toast } from 'sonner';
+import { getStorageErrorMessage, logStorageError } from '@/utils/storageErrors';
 
 export default function CreateMatchDialog() {
   const [open, setOpen] = useState(false);
@@ -49,8 +50,9 @@ export default function CreateMatchDialog() {
       setTeam2('');
       setOpen(false);
     } catch (error) {
-      toast.error('Failed to create match');
-      console.error(error);
+      logStorageError('create match', error);
+      const errorMessage = getStorageErrorMessage(error);
+      toast.error(errorMessage);
     }
   };
 

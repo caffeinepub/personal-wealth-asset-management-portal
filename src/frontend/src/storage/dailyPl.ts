@@ -4,32 +4,42 @@ import type { DailyReport, DaywiseSummary } from '@/backend';
 export async function generateDailyReport(): Promise<DailyReport> {
   const entries = await listCashflowEntries();
 
-  // Group by day
-  const dayMap = new Map<number, { credit: number; debit: number }>();
+  // Group entries by day
+  const dayMap = new Map<number, typeof entries>();
 
   for (const entry of entries) {
     const dayTimestamp = Number(entry.createdAt / BigInt(24 * 60 * 60 * 1000000000));
-    
     if (!dayMap.has(dayTimestamp)) {
-      dayMap.set(dayTimestamp, { credit: 0, debit: 0 });
+      dayMap.set(dayTimestamp, []);
     }
-
-    const day = dayMap.get(dayTimestamp)!;
-    if (entry.entryType === 'credit') {
-      day.credit += entry.amount;
-    } else {
-      day.debit += entry.amount;
-    }
+    dayMap.get(dayTimestamp)!.push(entry);
   }
 
-  const dailySummaries: DaywiseSummary[] = Array.from(dayMap.entries())
-    .map(([dayTimestamp, totals]) => ({
-      date: BigInt(dayTimestamp),
-      totalCredit: totals.credit,
-      totalDebit: totals.debit,
-      netProfitLoss: totals.credit - totals.debit,
-    }))
-    .sort((a, b) => Number(a.date - b.date));
+  // Calculate daily summaries
+  const dailySummaries: DaywiseSummary[] = [];
+  
+  for (const [day, dayEntries] of dayMap.entries()) {
+    let totalCredit = 0;
+    let totalDebit = 0;
+
+    for (const entry of dayEntries) {
+      if (entry.entryType === 'credit') {
+        totalCredit += entry.amount;
+      } else {
+        totalDebit += entry.amount;
+      }
+    }
+
+    dailySummaries.push({
+      date: BigInt(day),
+      totalCredit,
+      totalDebit,
+      netProfitLoss: totalCredit - totalDebit,
+    });
+  }
+
+  // Sort by date descending
+  dailySummaries.sort((a, b) => Number(b.date - a.date));
 
   return { dailySummaries };
 }
