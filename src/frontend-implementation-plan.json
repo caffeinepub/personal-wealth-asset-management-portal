@@ -1,199 +1,239 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "M(P/L) betting match module (frontend): multi-match tracking, entries, running P/L, settlement, and canister integration",
+  "title": "Offline-capable wealth portal with IndexedDB storage and PWA caching",
   "requirements": [
     {
-      "id": "REQ-23",
-      "summary": "Add M(P/L) navigation item and module entry page accessible from the main app shell.",
+      "id": "REQ-31",
+      "summary": "Remove Internet Identity login gating so routes and pages load offline without blocking on authentication.",
       "acceptanceCriteria": [
-        "The left navigation renders a new item labeled \"M(P/L)\".",
-        "Clicking \"M(P/L)\" navigates to the M(P/L) page without breaking existing routes.",
-        "All user-facing text for the new module is in English."
+        "Opening the app with no network connection does not show an Internet Identity login screen and does not block access to any module pages.",
+        "No feature page throws an 'Actor not available' error during normal navigation when offline."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/navigation/NavLinks.tsx",
+          "path": "frontend/src/components/auth/AuthGate.tsx",
           "operation": "modify",
-          "description": "Add a new nav item labeled \"M(P/L)\" pointing to the new M(P/L) route; keep existing items unchanged. Verify the component's usage instructions before implementing."
+          "description": "Convert AuthGate into a non-blocking wrapper that always renders children (no full-screen login/initializing screens) so the app loads directly into the existing AppShell/routes while offline."
         },
         {
-          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
-          "operation": "create",
-          "description": "Create the M(P/L) module page that will host match list + create-match UI and route-aware match detail rendering. Ensure all new user-facing strings are English. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/layout/AppShell.tsx",
+          "operation": "modify",
+          "description": "Ensure the header does not require authentication to render; keep existing navigation and layout intact while allowing the app to be used without logging in."
         }
       ]
     },
     {
-      "id": "REQ-24",
-      "summary": "Implement M(P/L) UI to create and manage multiple matches with exactly two user-defined team names per match.",
+      "id": "REQ-32",
+      "summary": "Replace backend-dependent user profile with a local-only profile persisted on device while keeping the existing ProfileSetupDialog flow.",
       "acceptanceCriteria": [
-        "The M(P/L) page provides a \"Create match\" flow that requires Team 1 name and Team 2 name.",
-        "The UI lists existing matches and allows opening a match to view its details.",
-        "Each match detail view clearly displays both team names."
+        "On first load with no local profile, the profile dialog appears and saving a name persists it locally.",
+        "On subsequent loads, the profile dialog does not appear and the app remains usable offline."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "path": "frontend/src/storage/profile.ts",
           "operation": "create",
-          "description": "Add a create-match dialog/flow with required inputs for Team 1 and Team 2 (no more/less than two teams), validating non-empty values before submission. Verify the component's usage instructions before implementing."
+          "description": "Add local-only profile persistence (read/write display name) backed by the app’s IndexedDB/local database layer."
         },
         {
-          "path": "frontend/src/features/mpl/components/MatchesListCard.tsx",
-          "operation": "create",
-          "description": "Add a match list UI showing existing matches and an action to open a match (navigating to the match detail route). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
-          "operation": "create",
-          "description": "Add a match detail view that prominently displays the two team names and overall match status (open/settled). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
+          "path": "frontend/src/components/auth/ProfileSetupDialog.tsx",
           "operation": "modify",
-          "description": "Wire CreateMatchDialog and MatchesListCard into the M(P/L) page and render MatchDetailView when a match is selected via routing. Verify the component's usage instructions before implementing."
+          "description": "Refactor ProfileSetupDialog to use the local profile store (instead of useActor + backend calls) while preserving the existing prompt-once/save/do-not-prompt-again behavior and the existing queryKeys.userProfile.current() cache key."
         }
       ]
     },
     {
-      "id": "REQ-25",
-      "summary": "Implement per-match entry creation UI capturing favorite team, back/lay, rate, bet amount (INR), and bookie name; allow unlimited entries and list them.",
+      "id": "REQ-33",
+      "summary": "Implement IndexedDB-based persistence for all module entities (loans, properties, wealth inputs, cashflow entries, M(P/L) matches, M(P/L) entries) including IDs and timestamps.",
       "acceptanceCriteria": [
-        "Within an open (unsettled) match, the UI shows a form with: Favorite Team (dropdown with the 2 team names), Back/Lay control, Rate input, Bet Amount input, and Bookie Name input.",
-        "Submitting an entry appends it to the match’s entry list/table.",
-        "The entry list shows at minimum: created time (or date), favorite team, Back/Lay, rate, bet amount (₹ formatted), and bookie name.",
-        "The UI allows creating multiple entries consecutively without needing to recreate the match."
+        "Creating, editing, and deleting records in each module persists across page reloads without a network connection.",
+        "IDs are unique per entity type and stable across reloads.",
+        "Timestamps required by the UI are stored and updated on create/update."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/features/mpl/components/EntryFormCard.tsx",
+          "path": "frontend/src/storage/indexedDb.ts",
           "operation": "create",
-          "description": "Create the entry form UI for an open match: favorite team select (exactly the match’s 2 team names), Back/Lay control, decimal rate input, INR bet amount input, and bookie name text input; submit via module mutation. Verify the component's usage instructions before implementing."
+          "description": "Create an IndexedDB wrapper responsible for database open/upgrade, typed object stores for each entity type, and generic get/list/put/delete helpers."
         },
         {
-          "path": "frontend/src/features/mpl/components/EntriesTable.tsx",
+          "path": "frontend/src/storage/ids.ts",
           "operation": "create",
-          "description": "Create an entries table/list showing created time/date, favorite team, Back/Lay, rate, bet amount formatted with the existing INR utility, and bookie name. Verify the component's usage instructions before implementing."
+          "description": "Implement local ID generation with per-entity counters (stored in IndexedDB) to produce unique, stable bigint IDs per entity type across reloads."
         },
         {
-          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
-          "operation": "modify",
-          "description": "Wire EntryFormCard and EntriesTable into the match detail view for open matches so users can add multiple entries consecutively without leaving the match. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/storage/timestamps.ts",
+          "operation": "create",
+          "description": "Add helpers to generate/update bigint timestamps for createdAt/updatedAt fields in a consistent manner across all locally persisted entities."
+        },
+        {
+          "path": "frontend/src/storage/loansRepo.ts",
+          "operation": "create",
+          "description": "Add a loans repository implementing local list/get/addOrUpdate/delete operations that preserve UI-required fields (id, createdAt, updatedAt, etc.)."
+        },
+        {
+          "path": "frontend/src/storage/propertiesRepo.ts",
+          "operation": "create",
+          "description": "Add a properties repository implementing local list/get/addOrUpdate/delete operations with stable IDs and timestamps."
+        },
+        {
+          "path": "frontend/src/storage/wealthInputsRepo.ts",
+          "operation": "create",
+          "description": "Add a wealth inputs repository implementing local list/get/addOrUpdate/delete operations with stable IDs and timestamps."
+        },
+        {
+          "path": "frontend/src/storage/cashflowRepo.ts",
+          "operation": "create",
+          "description": "Add a cashflow repository implementing local list/get/addOrUpdate/delete operations with stable IDs and timestamps."
+        },
+        {
+          "path": "frontend/src/storage/mplRepo.ts",
+          "operation": "create",
+          "description": "Add an M(P/L) repository implementing local match and entry persistence, including match settlement fields (status/winner/settledAt) and required timestamps."
         }
       ]
     },
     {
-      "id": "REQ-26",
-      "summary": "Display running per-team P/L totals after each entry using the universal Back/Lay formulas and INR formatting, kept consistent with backend summary.",
+      "id": "REQ-34",
+      "summary": "Refactor feature React Query hooks to use local persistence instead of actor calls, keeping queryKeys structure and invalidation behavior, without modifying immutable hook files.",
       "acceptanceCriteria": [
-        "After adding an entry, the match detail view updates to show the latest cumulative P/L for Team 1 and Team 2.",
-        "The calculation matches the user examples (e.g., rate 1.4 back for 10,000 results in fav +4,000 and opposite −10,000; rate 1.05 lay for 13,000 results in fav −650 and opposite +13,000).",
-        "All P/L amounts and bet amounts are displayed with consistent INR (₹) formatting.",
-        "The running P/L is the sum of all entries in that match and is consistent between backend responses and frontend display."
+        "All existing pages load their data via React Query without requiring an actor/identity.",
+        "Create/update/delete operations update the visible UI immediately (via invalidation/refetch or cache updates) and remain correct after reload.",
+        "No changes are made to the immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/features/mpl/utils/pl.ts",
-          "operation": "create",
-          "description": "Add frontend utility functions to compute per-team running P/L from entries using the universal Back/Lay formulas (used for display cross-checks and/or optimistic UI). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "path": "frontend/src/features/lending/api.ts",
           "operation": "modify",
-          "description": "Render a clear per-team running P/L summary (Team 1 and Team 2), formatted with the existing INR currency utility and with clear positive/negative sign styling; keep displayed totals in sync with backend-provided summary. Verify the component's usage instructions before implementing."
+          "description": "Replace useActor-backed queries/mutations with local loans repository operations while keeping existing React Query queryKeys usage and invalidateLoans(queryClient) behavior."
         },
         {
-          "path": "frontend/src/features/mpl/api.ts",
-          "operation": "create",
-          "description": "Add a React Query hook to load the per-match P/L summary from the canister and expose it to MatchDetailView; ensure it refetches/invalidates after entry mutations. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-27",
-      "summary": "Add match settlement UI: select winner (one of two teams), settle match, freeze match UI to prevent new entries, and show winner + settled timestamp.",
-      "acceptanceCriteria": [
-        "The match detail view provides a \"Settle match\" action for open matches.",
-        "Settlement requires choosing the winner from the two teams (no free-text winner).",
-        "After settlement, the UI indicates the match is settled and shows winner + settled time.",
-        "After settlement, the entry creation UI is disabled/hidden and backend rejects attempts to add new entries to the settled match.",
-        "The final (frozen) P/L shown after settlement remains unchanged even after page refresh."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/features/mpl/components/SettleMatchDialog.tsx",
-          "operation": "create",
-          "description": "Create a settle-match dialog prompting winner selection from the two team names only, and triggering the settle mutation. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "path": "frontend/src/features/properties/api.ts",
           "operation": "modify",
-          "description": "Add a \"Settle match\" action for open matches, show settled status/winner/settled time for settled matches, and disable/hide entry creation UI when settled. Verify the component's usage instructions before implementing."
+          "description": "Replace useActor-backed queries/mutations with local properties repository operations while keeping existing queryKeys and invalidateProperties(queryClient) behavior."
+        },
+        {
+          "path": "frontend/src/features/networth/api.ts",
+          "operation": "modify",
+          "description": "Replace useActor-backed wealth input list/mutation and net worth aggregate query with local repositories and local aggregate computation while preserving queryKeys.aggregates.* usage."
+        },
+        {
+          "path": "frontend/src/features/cashflow/api.ts",
+          "operation": "modify",
+          "description": "Replace useActor-backed cashflow list/summary/mutations with local cashflow repository + local summary computation while keeping queryKeys.cashflow.* and invalidateCashflow(queryClient) behavior."
+        },
+        {
+          "path": "frontend/src/features/daily-pl/api.ts",
+          "operation": "modify",
+          "description": "Replace backend report query with a local computation sourced from locally stored cashflow entries while keeping queryKeys.dailyPL.report()."
         },
         {
           "path": "frontend/src/features/mpl/api.ts",
           "operation": "modify",
-          "description": "Add a React Query mutation hook for settling a match; on success, invalidate match detail, match list, entries, and P/L summary queries so the frozen final result persists after refresh. Verify the component's usage instructions before implementing."
+          "description": "Replace useActor-backed match/entry/plSummary/settle mutations with local M(P/L) repository operations while keeping existing queryKeys.mpl.* structure and invalidation behavior."
         }
       ]
     },
     {
-      "id": "REQ-29",
-      "summary": "Integrate M(P/L) module with the Motoko canister using feature-scoped React Query hooks, centralized query keys, and correct invalidation.",
+      "id": "REQ-35",
+      "summary": "Re-implement all derived/aggregate computations locally while preserving existing UI outputs for net worth, dashboard metrics, lending insights datasets, and monthly cash flow KPI logic.",
       "acceptanceCriteria": [
-        "New React Query hooks exist for M(P/L) operations and are used by the M(P/L) page/components.",
-        "New query keys are added in the centralized query key file, following the existing structure (e.g., queryKeys.*).",
-        "After creating a match, the match list refreshes automatically.",
-        "After adding an entry, the entry list and P/L summary refreshes automatically.",
-        "After settling a match, the match detail refreshes and entry creation is blocked without manual refresh.",
-        "No immutable hook files are modified."
+        "Dashboard overview loads and displays without network connectivity and reflects locally stored loans/properties/wealth inputs.",
+        "Lending Insights charts render based on locally stored loans and match the existing calculation behavior (including tenure + monthly/yearly toggle usage already present in the UI).",
+        "Net Worth page totals correctly incorporate the latest local wealth inputs plus locally stored property and lending totals."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/queryKeys.ts",
+          "path": "frontend/src/features/dashboard/api.ts",
           "operation": "modify",
-          "description": "Add feature-scoped query keys for M(P/L): match list, match detail, entries list per match, and P/L summary per match, following the existing queryKeys.* structure. Verify the component's usage instructions before implementing."
+          "description": "Compute dashboard overview metrics from local repositories (loans/properties/wealth inputs) and keep the existing monthlyCashFlow interest logic and queryKeys.dashboard.overview() usage."
         },
         {
-          "path": "frontend/src/queryInvalidation.ts",
+          "path": "frontend/src/storage/aggregates.ts",
+          "operation": "create",
+          "description": "Add local aggregate helpers for totals used by dashboard and net worth (property total, lending total, wealth input total, net worth total) to match current UI behavior."
+        },
+        {
+          "path": "frontend/src/features/lending/components/LendingInsights.tsx",
           "operation": "modify",
-          "description": "Add an invalidateMpl helper that invalidates M(P/L) queries (matches, match detail, entries, summary) to keep screens in sync after mutations. Verify the component's usage instructions before implementing."
+          "description": "Verify Lending Insights uses the locally sourced loans data via React Query and continues to render the same datasets/behaviors without any backend dependency."
+        },
+        {
+          "path": "frontend/src/features/networth/components/NetWorthSummaryCards.tsx",
+          "operation": "modify",
+          "description": "Ensure Net Worth summary cards remain consistent with the locally computed aggregate outputs and handle offline-first loading states cleanly."
+        }
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "summary": "Compute Daily Profit/Loss report strictly from locally stored cashflow entries with the same report semantics as the current UI.",
+      "acceptanceCriteria": [
+        "Daily Profit/Loss page renders a report while offline and updates correctly when cashflow entries are added/edited/deleted.",
+        "Only cashflow-derived data is shown/used for Daily P/L computations."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/storage/dailyPl.ts",
+          "operation": "create",
+          "description": "Implement local Daily P/L report generation that groups cashflow entries daywise and returns totals/net profit-loss in the same shape expected by the UI."
+        },
+        {
+          "path": "frontend/src/features/daily-pl/api.ts",
+          "operation": "modify",
+          "description": "Update the Daily P/L React Query hook to call the local daily report generator using locally stored cashflow entries (no backend calls), keeping queryKeys.dailyPL.report() intact."
+        }
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "summary": "Make M(P/L) match lifecycle, entries, running P/L summary, and settlement fully offline with persistence and settlement freezing behavior preserved.",
+      "acceptanceCriteria": [
+        "Matches can be created, selected, and persist across reloads offline.",
+        "Entries can be added to a match and the running P/L summary updates correctly after each entry (using the existing formula behavior).",
+        "After settling a match, the match is frozen (no new entries possible) and the winner/settled timestamp persist across reloads."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/storage/mplPlSummary.ts",
+          "operation": "create",
+          "description": "Add local computation for M(P/L) PLSummary derived from locally stored match + entries, aligned with the existing formula behavior used by the UI."
         },
         {
           "path": "frontend/src/features/mpl/api.ts",
-          "operation": "create",
-          "description": "Create feature-scoped React Query hooks using the existing actor pattern: list/create matches, get match detail, list/add entries, load P/L summary, and settle match; include proper query keys and invalidation on success. Verify the component's usage instructions before implementing."
+          "operation": "modify",
+          "description": "Ensure match creation, entry creation, match detail, entries listing, P/L summary, and settlement use local persistence; enforce settlement freeze semantics by preventing new entry mutations for settled matches and persisting winner/settledAt."
         },
         {
-          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
+          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
           "operation": "modify",
-          "description": "Adopt the new M(P/L) hooks for match listing/creation and route-driven match selection; ensure list refresh after create and detail stays in sync after mutations. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/features/mpl/components/EntryFormCard.tsx",
-          "operation": "modify",
-          "description": "Use the M(P/L) add-entry mutation hook and ensure the UI supports consecutive entry creation while automatically refreshing entries and P/L summary via invalidation. Verify the component's usage instructions before implementing."
+          "description": "Ensure the UI correctly reflects locally persisted match status and continues to disable entry creation when a match is settled (freeze behavior) while offline."
         }
       ]
     },
     {
-      "id": "REQ-30",
-      "summary": "Register TanStack Router routes for the M(P/L) module using the existing AuthGate-wrapped route tree without breaking other routes.",
+      "id": "REQ-38",
+      "summary": "Add offline caching for the static frontend bundle so the app loads and routes work offline after one successful online load.",
       "acceptanceCriteria": [
-        "A new route is registered in the router tree and renders the M(P/L) page component.",
-        "The route is reachable when authenticated via Internet Identity (same AuthGate flow as other pages).",
-        "Existing routes continue to work as before."
+        "After loading the app once online, the user can refresh and navigate core routes while offline and the app still loads.",
+        "Offline caching does not break existing routing (TanStack Router) or theming (dark mode)."
       ],
       "file_operations": [
+        {
+          "path": "frontend/public/sw.js",
+          "operation": "create",
+          "description": "Implement a service worker that precaches the app shell assets and uses a navigation fallback to the cached index.html while applying a safe cache strategy for same-origin static assets."
+        },
+        {
+          "path": "frontend/src/pwa/registerServiceWorker.ts",
+          "operation": "create",
+          "description": "Add a small helper to register the service worker on supported browsers and handle updates without disrupting normal navigation."
+        },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Register the new M(P/L) route(s) under the existing root route (AuthGate + AppShell), rendering MatchProfitLossPage; include a route for match details (e.g., via path param) so opening a match is navigable without breaking existing routes. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
-          "operation": "modify",
-          "description": "Implement route-param (or route-search) driven selection so the page can render match list vs match detail consistently with the new router registration. Verify the component's usage instructions before implementing."
+          "description": "Wire service worker registration into app startup (without changing routing structure) so the app becomes offline-loadable after the first successful online load."
         }
       ]
     }

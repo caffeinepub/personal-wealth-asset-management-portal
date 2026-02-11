@@ -1,10 +1,9 @@
 import { Outlet } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Menu, X, LayoutDashboard, Wallet, Building2, TrendingUp } from 'lucide-react';
+import { Menu, X, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NavLinks from '../navigation/NavLinks';
-import LoginButton from '../auth/LoginButton';
 
 export default function AppShell() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -29,8 +28,6 @@ export default function AppShell() {
           </div>
 
           <div className="flex items-center gap-2">
-            <LoginButton />
-            
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">

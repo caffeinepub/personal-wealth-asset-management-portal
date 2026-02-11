@@ -1,6 +1,7 @@
 import { RouterProvider, createRouter, createRoute, createRootRoute } from '@tanstack/react-router';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/sonner';
+import { useEffect } from 'react';
 import AppShell from './components/layout/AppShell';
 import AuthGate from './components/auth/AuthGate';
 import ProfileSetupDialog from './components/auth/ProfileSetupDialog';
@@ -11,6 +12,7 @@ import NetWorthPage from './pages/NetWorthPage';
 import CashflowPage from './pages/CashflowPage';
 import DailyProfitLossPage from './pages/DailyProfitLossPage';
 import MatchProfitLossPage from './pages/MatchProfitLossPage';
+import { registerServiceWorker } from './pwa/registerServiceWorker';
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -82,6 +84,10 @@ declare module '@tanstack/react-router' {
 }
 
 export default function App() {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <RouterProvider router={router} />

@@ -1,21 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { useActor } from '@/hooks/useActor';
 import { queryKeys } from '@/queryKeys';
+import { netWorth, totalPropertyValue, totalLendingPortfolio, totalWealthInputs } from '@/storage/aggregates';
+import { listLoans } from '@/storage/loansRepo';
 
 export function useDashboardOverview() {
-  const { actor, isFetching: actorFetching } = useActor();
-
   return useQuery({
     queryKey: queryKeys.dashboard.overview(),
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      
-      const [netWorth, propertyValue, lendingPortfolio, wealthInputsTotal, loans] = await Promise.all([
-        actor.netWorth(),
-        actor.totalPropertyValue(),
-        actor.totalLendingPortfolio(),
-        actor.totalWealthInputs(),
-        actor.listLoans(),
+      const [netWorthValue, propertyValue, lendingPortfolio, wealthInputsTotal, loans] = await Promise.all([
+        netWorth(),
+        totalPropertyValue(),
+        totalLendingPortfolio(),
+        totalWealthInputs(),
+        listLoans(),
       ]);
 
       // Calculate monthly cash flow from loans
@@ -28,13 +25,12 @@ export function useDashboardOverview() {
       }, 0);
 
       return {
-        netWorth,
+        netWorth: netWorthValue,
         propertyValue,
         lendingPortfolio,
         wealthInputsTotal,
         monthlyCashFlow,
       };
     },
-    enabled: !!actor && !actorFetching,
   });
 }

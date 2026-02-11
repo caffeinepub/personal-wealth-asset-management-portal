@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
-  "summary": "Build a comprehensive Personal Wealth & Asset Management Portal with a dark FinTech-style, dashboard-centric UI (React + Tailwind) and a Motoko backend. Core modules include a money lending & interest tracker with charts, a property/real-estate ledger, a net worth aggregator, a centralized executive dashboard with KPIs and quick actions, plus Cashflow (Give/Take) tracking and a Daily Profit/Loss report derived strictly from Cashflow entries. Add a new M(P/L) module to track multiple matches between two user-named teams, record back/lay entries against the selected favorite team with rate and bet amount (plus bookie name), continuously update per-team P/L after each entry using universal formulas, and settle/freeze final match P/L by selecting the winner. Use INR (₹) currency formatting across the entire app. Responsive design required; mock-login screen explicitly excluded.",
+  "projectStateVersion": 11,
+  "summary": "Pivot to an offline-capable version of the portal: keep the same UI/features, but run fully offline with all data stored locally (e.g., IndexedDB/local persistence) instead of using the Motoko/Internet Computer backend. User accepted that a true Windows desktop EXE is not supported and chose an offline web app approach.",
   "architectural_notes": [
     "Frontend: React + Tailwind CSS; responsive, dashboard-centric dark FinTech aesthetic (emerald + gold accents).",
     "Backend: Motoko; support lending, property, and net-worth aggregation data.",
@@ -178,6 +178,70 @@
         "REQ-30"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-remove-the-internet-identity-authentication-requirement-so-the-app-is-usable-fully-offline-the-ui-must-load-directly-into-the-existing-appshell-routes-without-blocking-on-login-while-keeping-the-rest-of-the-ui-feature-pages-the-same",
+      "title": "Remove the Internet Identity authentication requirement so the app is usable fully offline: the UI must load directly into the existing AppShell/routes without blocking on login, while keeping the rest of the UI/feature pages the same.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-backend-dependent-user-profile-behavior-with-a-local-only-profile-persist-the-display-name-locally-and-keep-the-existing-profilesetupdialog-flow-prompt-once-when-no-local-name-exists-save-do-not-prompt-again-once-saved",
+      "title": "Replace backend-dependent user profile behavior with a local-only profile: persist the display name locally and keep the existing ProfileSetupDialog flow (prompt once when no local name exists; save; do not prompt again once saved).",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-local-persistence-layer-using-indexeddb-or-equivalent-browser-local-database-to-store-all-module-data-offline-covering-loans-properties-wealth-inputs-cashflow-entries-m-p-l-matches-and-m-p-l-entries-the-stored-records-must-include-the-same-fields-currently-used-by-the-ui-including-ids-and-timestamps",
+      "title": "Implement a local persistence layer using IndexedDB (or equivalent browser local database) to store all module data offline, covering: loans, properties, wealth inputs, cashflow entries, M(P/L) matches, and M(P/L) entries. The stored records must include the same fields currently used by the UI (including IDs and timestamps).",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-refactor-the-feature-api-hooks-to-use-the-new-local-persistence-layer-instead-of-motoko-canister-actor-calls-without-modifying-immutable-hook-files-update-these-modules-at-minimum-lending-properties-net-worth-cashflow-daily-p-l-and-m-p-l-keep-the-existing-react-query-querykeys-structure-and-ensure-query-invalidation-continues-to-keep-lists-summaries-charts-in-sync-after-mutations",
+      "title": "Refactor the feature API hooks to use the new local persistence layer instead of Motoko canister actor calls, without modifying immutable hook files. Update these modules at minimum: lending, properties, net worth, cashflow, daily P/L, and M(P/L). Keep the existing React Query queryKeys structure and ensure query invalidation continues to keep lists/summaries/charts in sync after mutations.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-re-implement-all-derived-aggregate-computations-to-run-locally-instead-of-backend-aggregate-endpoints-while-keeping-existing-ui-outputs-the-same-net-worth-summary-including-totals-from-property-lending-wealth-inputs-dashboard-overview-metrics-lending-insights-chart-datasets-and-monthly-cash-flow-kpi-derived-from-lending-interest-logic",
+      "title": "Re-implement all derived/aggregate computations to run locally (instead of backend aggregate endpoints), while keeping existing UI outputs the same: net worth summary (including totals from property + lending + wealth inputs), dashboard overview metrics, lending insights chart datasets, and monthly cash flow KPI derived from lending interest logic.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-re-implement-the-daily-profit-loss-report-generation-to-be-computed-strictly-from-locally-stored-cashflow-entries-no-backend-calls-and-keep-the-same-report-semantics-used-by-the-ui-daywise-totals-and-net-profit-loss",
+      "title": "Re-implement the Daily Profit/Loss report generation to be computed strictly from locally stored cashflow entries (no backend calls) and keep the same report semantics used by the UI (daywise totals and net profit/loss).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-m-p-l-match-management-entry-creation-running-p-l-computation-and-match-settlement-all-work-fully-offline-using-local-persistence-preserving-the-existing-ui-behaviors-including-settlement-freezing-matches-and-preventing-new-entries",
+      "title": "Ensure M(P/L) match management, entry creation, running P/L computation, and match settlement all work fully offline using local persistence, preserving the existing UI behaviors (including settlement freezing matches and preventing new entries).",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-app-offline-loadable-as-a-web-app-after-the-first-successful-load-by-adding-an-offline-caching-strategy-for-the-static-frontend-bundle-pwa-service-worker-or-equivalent-so-the-app-shell-and-routes-load-without-network-access",
+      "title": "Make the app offline-loadable as a web app after the first successful load by adding an offline caching strategy for the static frontend bundle (PWA/service worker or equivalent) so the app shell and routes load without network access.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -331,6 +395,18 @@
       "reqIds": [
         "REQ-28"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Re-implement backend persistence/logic to run fully offline: replace Motoko canister APIs with local in-browser storage (IndexedDB) for all modules (Loans, Properties, Net Worth inputs/aggregation, Cashflow, Daily P/L, M(P/L)) while keeping UI/behavior the same.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Refactor data-fetching layer to use offline local repositories (IndexedDB) instead of Motoko/React Query remote calls; ensure all lists, charts, KPIs, and derived reports update correctly from local data.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

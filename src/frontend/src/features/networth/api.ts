@@ -1,19 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from '@/hooks/useActor';
 import { queryKeys } from '@/queryKeys';
 import { invalidateWealthInputs } from '@/queryInvalidation';
+import { listWealthInputs, addOrUpdateWealthInput } from '@/storage/wealthInputsRepo';
+import { netWorth, totalPropertyValue, totalLendingPortfolio, totalWealthInputs } from '@/storage/aggregates';
 import type { WealthInput, WealthInputInput } from '@/backend';
 
 export function useListWealthInputs() {
-  const { actor, isFetching: actorFetching } = useActor();
-
   return useQuery<WealthInput[]>({
     queryKey: queryKeys.wealthInputs.list(),
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.listWealthInputs();
+      return listWealthInputs();
     },
-    enabled: !!actor && !actorFetching,
   });
 }
 
@@ -30,13 +27,11 @@ export function useLatestWealthInput() {
 }
 
 export function useAddOrUpdateWealthInput() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (wealthInput: WealthInputInput) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.addOrUpdateWealthInput(wealthInput);
+      return addOrUpdateWealthInput(wealthInput);
     },
     onSuccess: () => {
       invalidateWealthInputs(queryClient);
@@ -45,27 +40,22 @@ export function useAddOrUpdateWealthInput() {
 }
 
 export function useNetWorthSummary() {
-  const { actor, isFetching: actorFetching } = useActor();
-
   return useQuery({
     queryKey: queryKeys.aggregates.netWorth(),
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      
-      const [netWorth, propertyValue, lendingPortfolio, wealthInputsTotal] = await Promise.all([
-        actor.netWorth(),
-        actor.totalPropertyValue(),
-        actor.totalLendingPortfolio(),
-        actor.totalWealthInputs(),
+      const [netWorthValue, propertyValue, lendingPortfolio, wealthInputsTotal] = await Promise.all([
+        netWorth(),
+        totalPropertyValue(),
+        totalLendingPortfolio(),
+        totalWealthInputs(),
       ]);
 
       return {
-        netWorth,
+        netWorth: netWorthValue,
         propertyValue,
         lendingPortfolio,
         wealthInputsTotal,
       };
     },
-    enabled: !!actor && !actorFetching,
   });
 }

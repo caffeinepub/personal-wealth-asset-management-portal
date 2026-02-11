@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-new-navigation-item-labeled-m-p-l-and-a-new-route-page-for-the-m-p-l-module-so-users-can-access-it-from-the-main-app-shell-alongside-dashboard-lending-properties-net-worth-cashflow-daily-p-l",
-      "featureTitle": "Add a new navigation item labeled \"M(P/L)\" and a new route/page for the M(P/L) module so users can access it from the main app shell alongside Dashboard/Lending/Properties/Net Worth/Cashflow/Daily P/L.",
+      "featureId": "feature-remove-the-internet-identity-authentication-requirement-so-the-app-is-usable-fully-offline-the-ui-must-load-directly-into-the-existing-appshell-routes-without-blocking-on-login-while-keeping-the-rest-of-the-ui-feature-pages-the-same",
+      "featureTitle": "Remove the Internet Identity authentication requirement so the app is usable fully offline: the UI must load directly into the existing AppShell/routes without blocking on login, while keeping the rest of the UI/feature pages the same.",
       "files": [
-        "frontend/src/components/navigation/NavLinks.tsx",
-        "frontend/src/pages/MatchProfitLossPage.tsx"
+        "frontend/src/components/auth/AuthGate.tsx",
+        "frontend/src/components/layout/AppShell.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,18 +17,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-23"
+        "REQ-31"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-m-p-l-ui-to-create-and-manage-multiple-matches-where-each-match-captures-exactly-two-user-defined-team-names-team-1-and-team-2",
-      "featureTitle": "Implement M(P/L) UI to create and manage multiple matches, where each match captures exactly two user-defined team names (Team 1 and Team 2).",
+      "featureId": "feature-replace-backend-dependent-user-profile-behavior-with-a-local-only-profile-persist-the-display-name-locally-and-keep-the-existing-profilesetupdialog-flow-prompt-once-when-no-local-name-exists-save-do-not-prompt-again-once-saved",
+      "featureTitle": "Replace backend-dependent user profile behavior with a local-only profile: persist the display name locally and keep the existing ProfileSetupDialog flow (prompt once when no local name exists; save; do not prompt again once saved).",
       "files": [
-        "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
-        "frontend/src/features/mpl/components/MatchDetailView.tsx",
-        "frontend/src/features/mpl/components/MatchesListCard.tsx",
-        "frontend/src/pages/MatchProfitLossPage.tsx"
+        "frontend/src/components/auth/ProfileSetupDialog.tsx",
+        "frontend/src/storage/profile.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -39,17 +37,22 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-24"
+        "REQ-32"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-m-p-l-entry-system-ui-inside-a-match-for-each-entry-prompt-for-1-which-team-is-favorite-select-one-of-the-two-teams-2-back-or-lay-selection-3-rate-decimal-e-g-1-40-4-bet-amount-inr-and-5-bookie-name-text-allow-adding-unlimited-entries-per-match",
-      "featureTitle": "Implement M(P/L) entry system UI inside a match: for each entry, prompt for (1) which team is favorite (select one of the two teams), (2) Back or Lay selection, (3) Rate (decimal, e.g., 1.40), (4) Bet Amount (INR), and (5) Bookie name (text). Allow adding unlimited entries per match.",
+      "featureId": "feature-implement-a-local-persistence-layer-using-indexeddb-or-equivalent-browser-local-database-to-store-all-module-data-offline-covering-loans-properties-wealth-inputs-cashflow-entries-m-p-l-matches-and-m-p-l-entries-the-stored-records-must-include-the-same-fields-currently-used-by-the-ui-including-ids-and-timestamps",
+      "featureTitle": "Implement a local persistence layer using IndexedDB (or equivalent browser local database) to store all module data offline, covering: loans, properties, wealth inputs, cashflow entries, M(P/L) matches, and M(P/L) entries. The stored records must include the same fields currently used by the UI (including IDs and timestamps).",
       "files": [
-        "frontend/src/features/mpl/components/EntriesTable.tsx",
-        "frontend/src/features/mpl/components/EntryFormCard.tsx",
-        "frontend/src/features/mpl/components/MatchDetailView.tsx"
+        "frontend/src/storage/cashflowRepo.ts",
+        "frontend/src/storage/ids.ts",
+        "frontend/src/storage/indexedDb.ts",
+        "frontend/src/storage/loansRepo.ts",
+        "frontend/src/storage/mplRepo.ts",
+        "frontend/src/storage/propertiesRepo.ts",
+        "frontend/src/storage/timestamps.ts",
+        "frontend/src/storage/wealthInputsRepo.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -60,17 +63,80 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-25"
+        "REQ-33"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-compute-and-display-running-p-l-for-both-teams-after-every-entry-using-the-universal-formulas-back-favorite-favorite-p-l-rate-1-amount-and-opposite-team-p-l-amount-lay-favorite-favorite-p-l-rate-1-amount-and-opposite-team-p-l-amount-display-the-cumulative-totals-per-team-for-the-match-in-inr-formatting-with-clear-positive-negative-sign-handling",
-      "featureTitle": "Compute and display running P/L for both teams after every entry using the universal formulas: BACK favorite → favorite P/L += (rate − 1) × amount and opposite team P/L += −amount; LAY favorite → favorite P/L += −(rate − 1) × amount and opposite team P/L += +amount. Display the cumulative totals per team for the match in INR formatting (₹) with clear positive/negative sign handling.",
+      "featureId": "feature-refactor-the-feature-api-hooks-to-use-the-new-local-persistence-layer-instead-of-motoko-canister-actor-calls-without-modifying-immutable-hook-files-update-these-modules-at-minimum-lending-properties-net-worth-cashflow-daily-p-l-and-m-p-l-keep-the-existing-react-query-querykeys-structure-and-ensure-query-invalidation-continues-to-keep-lists-summaries-charts-in-sync-after-mutations",
+      "featureTitle": "Refactor the feature API hooks to use the new local persistence layer instead of Motoko canister actor calls, without modifying immutable hook files. Update these modules at minimum: lending, properties, net worth, cashflow, daily P/L, and M(P/L). Keep the existing React Query queryKeys structure and ensure query invalidation continues to keep lists/summaries/charts in sync after mutations.",
+      "files": [
+        "frontend/src/features/cashflow/api.ts",
+        "frontend/src/features/daily-pl/api.ts",
+        "frontend/src/features/lending/api.ts",
+        "frontend/src/features/mpl/api.ts",
+        "frontend/src/features/networth/api.ts",
+        "frontend/src/features/properties/api.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-34"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-re-implement-all-derived-aggregate-computations-to-run-locally-instead-of-backend-aggregate-endpoints-while-keeping-existing-ui-outputs-the-same-net-worth-summary-including-totals-from-property-lending-wealth-inputs-dashboard-overview-metrics-lending-insights-chart-datasets-and-monthly-cash-flow-kpi-derived-from-lending-interest-logic",
+      "featureTitle": "Re-implement all derived/aggregate computations to run locally (instead of backend aggregate endpoints), while keeping existing UI outputs the same: net worth summary (including totals from property + lending + wealth inputs), dashboard overview metrics, lending insights chart datasets, and monthly cash flow KPI derived from lending interest logic.",
+      "files": [
+        "frontend/src/features/dashboard/api.ts",
+        "frontend/src/storage/aggregates.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-35"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-re-implement-the-daily-profit-loss-report-generation-to-be-computed-strictly-from-locally-stored-cashflow-entries-no-backend-calls-and-keep-the-same-report-semantics-used-by-the-ui-daywise-totals-and-net-profit-loss",
+      "featureTitle": "Re-implement the Daily Profit/Loss report generation to be computed strictly from locally stored cashflow entries (no backend calls) and keep the same report semantics used by the UI (daywise totals and net profit/loss).",
+      "files": [
+        "frontend/src/features/daily-pl/api.ts",
+        "frontend/src/storage/dailyPl.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-36"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-m-p-l-match-management-entry-creation-running-p-l-computation-and-match-settlement-all-work-fully-offline-using-local-persistence-preserving-the-existing-ui-behaviors-including-settlement-freezing-matches-and-preventing-new-entries",
+      "featureTitle": "Ensure M(P/L) match management, entry creation, running P/L computation, and match settlement all work fully offline using local persistence, preserving the existing UI behaviors (including settlement freezing matches and preventing new entries).",
       "files": [
         "frontend/src/features/mpl/api.ts",
-        "frontend/src/features/mpl/components/MatchDetailView.tsx",
-        "frontend/src/features/mpl/utils/pl.ts"
+        "frontend/src/storage/mplPlSummary.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -81,60 +147,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-26"
+        "REQ-37"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-match-settlement-capability-after-the-user-finishes-a-match-prompt-to-select-the-winner-one-of-the-two-teams-and-settle-the-match-settling-must-freeze-the-match-prevent-new-entries-and-preserve-the-final-p-l-values-as-the-match-s-final-result-along-with-winner-and-settled-timestamp",
-      "featureTitle": "Add match settlement capability: after the user finishes a match, prompt to select the winner (one of the two teams) and settle the match. Settling must freeze the match: prevent new entries and preserve the final P/L values as the match’s final result along with winner and settled timestamp.",
+      "featureId": "feature-make-the-app-offline-loadable-as-a-web-app-after-the-first-successful-load-by-adding-an-offline-caching-strategy-for-the-static-frontend-bundle-pwa-service-worker-or-equivalent-so-the-app-shell-and-routes-load-without-network-access",
+      "featureTitle": "Make the app offline-loadable as a web app after the first successful load by adding an offline caching strategy for the static frontend bundle (PWA/service worker or equivalent) so the app shell and routes load without network access.",
       "files": [
-        "frontend/src/features/mpl/api.ts",
-        "frontend/src/features/mpl/components/MatchDetailView.tsx",
-        "frontend/src/features/mpl/components/SettleMatchDialog.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-27"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-integrate-the-new-m-p-l-module-frontend-with-the-motoko-canister-using-the-existing-react-query-patterns-add-feature-scoped-api-hooks-for-listing-creating-matches-loading-match-details-listing-adding-entries-loading-p-l-summary-and-settling-matches-add-appropriate-query-keys-and-query-invalidation-so-p-l-and-match-screens-stay-in-sync-after-mutations",
-      "featureTitle": "Integrate the new M(P/L) module frontend with the Motoko canister using the existing React Query patterns: add feature-scoped API hooks for listing/creating matches, loading match details, listing/adding entries, loading P/L summary, and settling matches. Add appropriate query keys and query invalidation so P/L and match screens stay in sync after mutations.",
-      "files": [
-        "frontend/src/features/mpl/api.ts",
-        "frontend/src/features/mpl/components/EntryFormCard.tsx",
-        "frontend/src/pages/MatchProfitLossPage.tsx",
-        "frontend/src/queryInvalidation.ts",
-        "frontend/src/queryKeys.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-29"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-frontend-routing-to-include-the-new-m-p-l-page-using-the-same-tanstack-router-approach-used-for-existing-modules-without-breaking-existing-routes",
-      "featureTitle": "Update frontend routing to include the new M(P/L) page using the same TanStack Router approach used for existing modules, without breaking existing routes.",
-      "files": [
+        "frontend/public/sw.js",
         "frontend/src/App.tsx",
-        "frontend/src/pages/MatchProfitLossPage.tsx"
+        "frontend/src/pwa/registerServiceWorker.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -145,7 +168,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-30"
+        "REQ-38"
       ],
       "confidence": "high"
     }

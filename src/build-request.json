@@ -1,183 +1,175 @@
 {
   "kind": "build_request",
-  "title": "Add new M(P/L) betting match module with multi-match tracking, entries, running P/L, and settlement",
+  "title": "Convert the portal to a fully offline-capable web app with local (IndexedDB) storage",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-23",
-      "text": "Add a new navigation item labeled \"M(P/L)\" and a new route/page for the M(P/L) module so users can access it from the main app shell alongside Dashboard/Lending/Properties/Net Worth/Cashflow/Daily P/L.",
+      "id": "REQ-31",
+      "text": "Remove the Internet Identity authentication requirement so the app is usable fully offline: the UI must load directly into the existing AppShell/routes without blocking on login, while keeping the rest of the UI/feature pages the same.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-mpl-name"
+          "msg-user-begin-build",
+          "msg-user-offline-confirmation"
         ],
         "quotes": [
-          "Let the module be called M(P/L)"
+          "I want it to work fully offline",
+          "Yes",
+          "Begin the build"
         ]
       },
       "acceptanceCriteria": [
-        "The left navigation renders a new item labeled \"M(P/L)\".",
-        "Clicking \"M(P/L)\" navigates to the M(P/L) page without breaking existing routes.",
-        "All user-facing text for the new module is in English."
+        "Opening the app with no network connection does not show an Internet Identity login screen and does not block access to any module pages.",
+        "No feature page throws an 'Actor not available' error during normal navigation when offline."
       ]
     },
     {
-      "id": "REQ-24",
-      "text": "Implement M(P/L) UI to create and manage multiple matches, where each match captures exactly two user-defined team names (Team 1 and Team 2).",
+      "id": "REQ-32",
+      "text": "Replace backend-dependent user profile behavior with a local-only profile: persist the display name locally and keep the existing ProfileSetupDialog flow (prompt once when no local name exists; save; do not prompt again once saved).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-mpl-multiple-matches"
+          "msg-user-offline-confirmation"
         ],
         "quotes": [
-          "Multiple matches each with its own two teams and its own list of entries"
+          "I want it to work fully offline"
         ]
       },
       "acceptanceCriteria": [
-        "The M(P/L) page provides a \"Create match\" flow that requires Team 1 name and Team 2 name.",
-        "The UI lists existing matches and allows opening a match to view its details.",
-        "Each match detail view clearly displays both team names."
+        "On first load with no local profile, the profile dialog appears and saving a name persists it locally.",
+        "On subsequent loads, the profile dialog does not appear and the app remains usable offline."
       ]
     },
     {
-      "id": "REQ-25",
-      "text": "Implement M(P/L) entry system UI inside a match: for each entry, prompt for (1) which team is favorite (select one of the two teams), (2) Back or Lay selection, (3) Rate (decimal, e.g., 1.40), (4) Bet Amount (INR), and (5) Bookie name (text). Allow adding unlimited entries per match.",
+      "id": "REQ-33",
+      "text": "Implement a local persistence layer using IndexedDB (or equivalent browser local database) to store all module data offline, covering: loans, properties, wealth inputs, cashflow entries, M(P/L) matches, and M(P/L) entries. The stored records must include the same fields currently used by the UI (including IDs and timestamps).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-mpl-entry-fields"
+          "msg-user-offline-confirmation"
         ],
         "quotes": [
-          "In the entry first ask for which team is fav, he’ll select one of those two entered teams, Then ask if he backed the team or laid the team, then ask for bet amount Then ask for rate of fav team",
-          "and in each entry ask for bookie name"
+          "I want it to work fully offline",
+          "I want everything same as now"
         ]
       },
       "acceptanceCriteria": [
-        "Within an open (unsettled) match, the UI shows a form with: Favorite Team (dropdown with the 2 team names), Back/Lay control, Rate input, Bet Amount input, and Bookie Name input.",
-        "Submitting an entry appends it to the match’s entry list/table.",
-        "The entry list shows at minimum: created time (or date), favorite team, Back/Lay, rate, bet amount (₹ formatted), and bookie name.",
-        "The UI allows creating multiple entries consecutively without needing to recreate the match."
+        "Creating, editing, and deleting records in each module persists across page reloads without a network connection.",
+        "IDs are unique per entity type and stable across reloads.",
+        "Timestamps required by the UI are stored and updated on create/update."
       ]
     },
     {
-      "id": "REQ-26",
-      "text": "Compute and display running P/L for both teams after every entry using the universal formulas: BACK favorite → favorite P/L += (rate − 1) × amount and opposite team P/L += −amount; LAY favorite → favorite P/L += −(rate − 1) × amount and opposite team P/L += +amount. Display the cumulative totals per team for the match in INR formatting (₹) with clear positive/negative sign handling.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-user-mpl-formula-confirm"
-        ],
-        "quotes": [
-          "Yes the universal rule is correct"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After adding an entry, the match detail view updates to show the latest cumulative P/L for Team 1 and Team 2.",
-        "The calculation matches the user examples (e.g., rate 1.4 back for 10,000 results in fav +4,000 and opposite −10,000; rate 1.05 lay for 13,000 results in fav −650 and opposite +13,000).",
-        "All P/L amounts and bet amounts are displayed with consistent INR (₹) formatting.",
-        "The running P/L is the sum of all entries in that match and is consistent between backend responses and frontend display."
-      ]
-    },
-    {
-      "id": "REQ-27",
-      "text": "Add match settlement capability: after the user finishes a match, prompt to select the winner (one of the two teams) and settle the match. Settling must freeze the match: prevent new entries and preserve the final P/L values as the match’s final result along with winner and settled timestamp.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-user-mpl-settle"
-        ],
-        "quotes": [
-          "Settle the final P/L of that match"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The match detail view provides a \"Settle match\" action for open matches.",
-        "Settlement requires choosing the winner from the two teams (no free-text winner).",
-        "After settlement, the UI indicates the match is settled and shows winner + settled time.",
-        "After settlement, the entry creation UI is disabled/hidden and backend rejects attempts to add new entries to the settled match.",
-        "The final (frozen) P/L shown after settlement remains unchanged even after page refresh."
-      ]
-    },
-    {
-      "id": "REQ-28",
-      "text": "Implement Motoko backend data model and APIs for M(P/L) that support per-authenticated-user storage of: matches (two team names, status, winner, createdAt/updatedAt, settledAt) and match entries (matchId, favoriteTeam indicator, back/lay, rate, amount, bookieName, createdAt/updatedAt). Provide APIs to create/list/get matches, add/list entries for a match, compute per-team P/L summary for a match, and settle a match.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-mpl-scope"
-        ],
-        "quotes": [
-          "Multiple matches each with its own two teams and its own list of entries",
-          "Settle the final P/L of that match",
-          "after every entry update the p/l under the teams"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes match CRUD sufficient to: create a match and list/get matches for the caller (admin may access broader resources only if consistent with existing access model).",
-        "Backend exposes entry operations sufficient to: add an entry to a match and list entries for a match.",
-        "Backend exposes a per-match P/L summary API that returns cumulative P/L for both teams based on stored entries and the universal formulas.",
-        "Backend exposes a settle API that stores winner + settledAt, marks the match settled, and prevents further entry additions.",
-        "All backend methods enforce the existing access-control pattern used for other modules (user permission required; ownership checks where applicable)."
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "text": "Integrate the new M(P/L) module frontend with the Motoko canister using the existing React Query patterns: add feature-scoped API hooks for listing/creating matches, loading match details, listing/adding entries, loading P/L summary, and settling matches. Add appropriate query keys and query invalidation so P/L and match screens stay in sync after mutations.",
+      "id": "REQ-34",
+      "text": "Refactor the feature API hooks to use the new local persistence layer instead of Motoko canister actor calls, without modifying immutable hook files. Update these modules at minimum: lending, properties, net worth, cashflow, daily P/L, and M(P/L). Keep the existing React Query queryKeys structure and ensure query invalidation continues to keep lists/summaries/charts in sync after mutations.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-mpl-start"
+          "msg-user-offline-confirmation"
         ],
         "quotes": [
-          "Start"
+          "I want everything same as now",
+          "I want it to work fully offline"
         ]
       },
       "acceptanceCriteria": [
-        "New React Query hooks exist for M(P/L) operations and are used by the M(P/L) page/components.",
-        "New query keys are added in the centralized query key file, following the existing structure (e.g., queryKeys.*).",
-        "After creating a match, the match list refreshes automatically.",
-        "After adding an entry, the entry list and P/L summary refresh automatically.",
-        "After settling a match, the match detail refreshes and entry creation is blocked without manual refresh.",
-        "No immutable hook files are modified."
+        "All existing pages load their data via React Query without requiring an actor/identity.",
+        "Create/update/delete operations update the visible UI immediately (via invalidation/refetch or cache updates) and remain correct after reload.",
+        "No changes are made to the immutable paths listed in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*)."
       ]
     },
     {
-      "id": "REQ-30",
-      "text": "Update frontend routing to include the new M(P/L) page using the same TanStack Router approach used for existing modules, without breaking existing routes.",
+      "id": "REQ-35",
+      "text": "Re-implement all derived/aggregate computations to run locally (instead of backend aggregate endpoints), while keeping existing UI outputs the same: net worth summary (including totals from property + lending + wealth inputs), dashboard overview metrics, lending insights chart datasets, and monthly cash flow KPI derived from lending interest logic.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-mpl-name"
+          "msg-user-offline-confirmation"
         ],
         "quotes": [
-          "Let the module be called M(P/L)"
+          "I want everything same as now",
+          "I want it to work fully offline"
         ]
       },
       "acceptanceCriteria": [
-        "A new route is registered in the router tree and renders the M(P/L) page component.",
-        "The route is reachable when authenticated via Internet Identity (same AuthGate flow as other pages).",
-        "Existing routes continue to work as before."
+        "Dashboard overview loads and displays without network connectivity and reflects locally stored loans/properties/wealth inputs.",
+        "Lending Insights charts render based on locally stored loans and match the existing calculation behavior (including tenure + monthly/yearly toggle usage already present in the UI).",
+        "Net Worth page totals correctly incorporate the latest local wealth inputs plus locally stored property and lending totals."
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "text": "Re-implement the Daily Profit/Loss report generation to be computed strictly from locally stored cashflow entries (no backend calls) and keep the same report semantics used by the UI (daywise totals and net profit/loss).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-offline-confirmation"
+        ],
+        "quotes": [
+          "I want it to work fully offline"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Daily Profit/Loss page renders a report while offline and updates correctly when cashflow entries are added/edited/deleted.",
+        "Only cashflow-derived data is shown/used for Daily P/L computations."
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "text": "Ensure M(P/L) match management, entry creation, running P/L computation, and match settlement all work fully offline using local persistence, preserving the existing UI behaviors (including settlement freezing matches and preventing new entries).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-offline-confirmation"
+        ],
+        "quotes": [
+          "I want everything same as now",
+          "I want it to work fully offline"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Matches can be created, selected, and persist across reloads offline.",
+        "Entries can be added to a match and the running P/L summary updates correctly after each entry (using the existing formula behavior).",
+        "After settling a match, the match is frozen (no new entries possible) and the winner/settled timestamp persist across reloads."
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "Make the app offline-loadable as a web app after the first successful load by adding an offline caching strategy for the static frontend bundle (PWA/service worker or equivalent) so the app shell and routes load without network access.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-offline-confirmation"
+        ],
+        "quotes": [
+          "I want it to work fully offline"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After loading the app once online, the user can refresh and navigate core routes while offline and the app still loads.",
+        "Offline caching does not break existing routing (TanStack Router) or theming (dark mode)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
-    "Do not modify any frontend files under frontend/src/components/ui or any paths listed as immutable hooks (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
-    "Use INR (₹) formatting for bet amounts and P/L amounts, consistent with existing currency utilities.",
-    "All user-facing text added for this module must be in English."
+    "Do not modify any files under frontend/src/components/ui (read-only Shadcn components).",
+    "Do not modify immutable hook files: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx.",
+    "Keep user-facing text in English.",
+    "Preserve the existing UI/features/behavior as they work today; only change data/auth plumbing to support fully offline operation."
   ],
   "nonGoals": [
-    "Do not add external integrations (no third-party bookie APIs, no odds feeds).",
-    "Do not add real-time multiplayer/live match syncing (no WebSockets).",
-    "Do not implement complex betting market types beyond the specified favorite + Back/Lay + rate + amount model.",
-    "Do not change existing Lending/Properties/Net Worth/Cashflow/Daily P/L business logic except for necessary navigation/routing/query-key additions."
+    "Building a true Windows desktop application (EXE/installer/Electron) is out of scope.",
+    "Adding cloud sync, multi-device sync, or server-side backups is out of scope.",
+    "Migrating existing data from the Internet Computer canister into local storage is out of scope unless explicitly requested."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
   },
   "userProfileUpdate": {
-    "goalsToAdd": [],
+    "goalsToAdd": [
+      "Run the existing wealth portal fully offline as an offline-capable web app with all data stored locally on the device"
+    ],
     "goalsToRemove": [],
     "preferencesToAdd": [],
     "preferencesToRemove": [],

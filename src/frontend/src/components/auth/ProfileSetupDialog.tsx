@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from '@/hooks/useActor';
 import { queryKeys } from '@/queryKeys';
+import { getProfile, saveProfile } from '@/storage/profile';
 import {
   Dialog,
   DialogContent,
@@ -13,27 +13,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import type { UserProfile } from '@/backend';
 
 export default function ProfileSetupDialog() {
-  const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
 
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useQuery<UserProfile | null>({
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useQuery({
     queryKey: queryKeys.userProfile.current(),
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      const profile = await getProfile();
+      return profile ? { name: profile.name } : null;
     },
-    enabled: !!actor && !actorFetching,
     retry: false,
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.saveCallerUserProfile(profile);
+    mutationFn: async (profileName: string) => {
+      await saveProfile(profileName);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.userProfile.current() });
@@ -43,11 +39,11 @@ export default function ProfileSetupDialog() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
-      await saveMutation.mutateAsync({ name: name.trim() });
+      await saveMutation.mutateAsync(name.trim());
     }
   };
 
-  const showDialog = !!actor && !actorFetching && !profileLoading && isFetched && userProfile === null;
+  const showDialog = !profileLoading && isFetched && userProfile === null;
 
   return (
     <Dialog open={showDialog}>
