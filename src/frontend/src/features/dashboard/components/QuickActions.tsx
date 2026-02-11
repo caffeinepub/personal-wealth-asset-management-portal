@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Wallet, Building2 } from 'lucide-react';
+import { ROUTES } from '@/routes/paths';
 
 export default function QuickActions() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function QuickActions() {
       </CardHeader>
       <CardContent className="space-y-3">
         <Button
-          onClick={() => navigate({ to: '/lending' })}
+          onClick={() => navigate({ to: ROUTES.LENDING })}
           className="w-full justify-start gap-2"
           variant="outline"
         >
@@ -22,7 +23,7 @@ export default function QuickActions() {
           Add New Loan
         </Button>
         <Button
-          onClick={() => navigate({ to: '/property' })}
+          onClick={() => navigate({ to: ROUTES.PROPERTIES })}
           className="w-full justify-start gap-2"
           variant="outline"
         >

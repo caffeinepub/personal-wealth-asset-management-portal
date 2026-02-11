@@ -15,6 +15,7 @@ import DailyProfitLossPage from '@/pages/DailyProfitLossPage';
 import MatchProfitLossPage from '@/pages/MatchProfitLossPage';
 import { registerServiceWorker } from '@/pwa/registerServiceWorker';
 import { useEffect } from 'react';
+import { ROUTES } from '@/routes/paths';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,43 +33,43 @@ const rootRoute = createRootRoute({
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: ROUTES.DASHBOARD,
   component: ExecutiveDashboardPage,
 });
 
 const lendingRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/lending',
+  path: ROUTES.LENDING,
   component: MoneyLendingPage,
 });
 
 const propertyRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/property',
+  path: ROUTES.PROPERTIES,
   component: PropertyLedgerPage,
 });
 
 const networthRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/networth',
+  path: ROUTES.NET_WORTH,
   component: NetWorthPage,
 });
 
 const cashflowRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/cashflow',
+  path: ROUTES.CASHFLOW,
   component: CashflowPage,
 });
 
 const dailyPlRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/daily-pl',
+  path: ROUTES.DAILY_PL,
   component: DailyProfitLossPage,
 });
 
 const mplRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/mpl',
+  path: ROUTES.MPL,
   component: MatchProfitLossPage,
 });
 

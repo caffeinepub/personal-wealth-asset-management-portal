@@ -1,92 +1,90 @@
 {
   "kind": "build_request",
-  "title": "Fix offline storage so create/save works for Loans, Properties, and M(P/L) Matches",
+  "title": "Version 11 final rebuild + deploy with service-worker cache busting so users receive the latest dashboard",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-48",
-      "text": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors.",
-      "target": "frontend",
+      "id": "REQ-56",
+      "text": "Produce Version 11 as a clean rebuild and redeploy of the current application state, ensuring all previously requested changes are included in the deployed artifacts (frontend build output and offline Windows bundle).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-6"
         ],
         "quotes": [
-          "No the code isnt working whenever I’m trying to save a new loan or save a new property or trying to create a new match its showing error in everything",
-          "Failed to save loan",
-          "Start the build"
+          "Process all the changes I’ve requested and again rebuild and deploy for the final time I want version 11 the final version"
         ]
       },
       "acceptanceCriteria": [
-        "On a fresh load, adding a Loan succeeds and shows the existing success toast (not the failure toast), and the new loan appears in the Loans table without requiring a refresh.",
-        "Adding a Property succeeds and the new property appears in the Property grid/list without requiring a refresh.",
-        "Creating a new M(P/L) Match succeeds and the new match appears in the match list without requiring a refresh.",
-        "No unhandled promise rejections appear in the browser console during these create actions."
+        "A clean production build completes successfully without manual intervention.",
+        "The deployed app loads all existing modules (Dashboard, Lending, Properties, Net Worth, Cashflow, Daily P/L, M(P/L)) without runtime errors.",
+        "The Windows offline ZIP bundle is regenerated from the same Version 11 build output and can be started via the provided Windows scripts."
       ]
     },
     {
-      "id": "REQ-49",
-      "text": "Make IndexedDB storage compatible and consistent by eliminating BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, and indexed fields like matchId), ensuring that data can be written and later read back correctly.",
+      "id": "REQ-57",
+      "text": "Fix the stale-UI issue by implementing Version 11 cache-busting for the service worker so that after deployment, clients do not stay stuck on older cached dashboard assets.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-6"
         ],
         "quotes": [
-          "whenever I’m trying to save a new loan or save a new property or trying to create a new match its showing error in everything"
+          "the dashboard is still the same what did you change",
+          "Process all the changes I’ve requested and again rebuild and deploy for the final time I want version 11 the final version"
         ]
       },
       "acceptanceCriteria": [
-        "All IndexedDB object stores used by Loans/Properties/M(P/L) can successfully persist records with their required fields, and subsequent list queries return the newly-created records.",
-        "M(P/L) entries store and retrieve correctly by matchId index (creating a match, adding an entry, and listing entries returns the new entry for that match).",
-        "Aggregations that compare timestamps (e.g., selecting the latest wealth inputs) work correctly with the persisted timestamp type."
+        "The service worker cache name/version is updated so a Version 11 deploy causes old caches to be replaced/invalidated.",
+        "After deployment, a user who revisits the app receives the new JS/CSS bundle rather than continuing to render the previous dashboard UI indefinitely.",
+        "SPA navigation fallback still works offline (navigating directly to routes like /properties, /daily-profit-loss, /match-pl works when offline after first load)."
       ]
     },
     {
-      "id": "REQ-50",
-      "text": "Improve error reporting for failed saves: when a create/save mutation fails, surface a clearer user-facing error message that includes a short actionable hint when storage is unavailable (e.g., blocked storage context), while keeping existing success messages unchanged.",
+      "id": "REQ-58",
+      "text": "Add a user-facing in-app update notice when a new service worker is available so users can refresh to load the latest Version 11 UI, using English text.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-6"
         ],
         "quotes": [
-          "Failed to save loan",
-          "when I’m trying to create a match its showing failed to create match"
+          "the dashboard is still the same what did you change"
         ]
       },
       "acceptanceCriteria": [
-        "If a save fails, the toast/error message is still in English and includes a brief reason/hint (where available) instead of only a generic 'Failed to save …' message.",
-        "The console log includes the underlying error object (or error message) for debugging, and the UI does not crash."
+        "When a new service worker is installed and waiting, the app shows a clear update message in English (e.g., \"A new version is available. Refresh to update.\").",
+        "The user can trigger the update flow (refresh/reload) without needing to open browser devtools or manually clear site data.",
+        "If no update is available, no update message is shown."
       ]
     },
     {
-      "id": "REQ-51",
-      "text": "Add a runtime guard for unsupported execution contexts where IndexedDB is unavailable (or blocked), and show an in-app blocking notice explaining that the app must be run from a local server origin (http://localhost/...) rather than directly opening index.html via file://.",
+      "id": "REQ-59",
+      "text": "Update the offline Windows bundle metadata to reflect Version 11 so the generated ZIP and included metadata clearly identify the final release version.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-6"
         ],
         "quotes": [
-          "the code isnt working ... trying to save ... its showing error in everything"
+          "I want version 11 the final version"
         ]
       },
       "acceptanceCriteria": [
-        "When the app is opened in a context where IndexedDB cannot be opened, the app shows a clear English message explaining the issue and how to fix it (run via the provided Windows local server scripts / localhost), instead of allowing silent failures on Save/Create.",
-        "When opened in a normal localhost-served context, the guard does not appear and normal app usage is unaffected."
+        "The offline-bundle configuration metadata includes Version 11 (or equivalent explicit version string).",
+        "The generated ZIP name and/or included instructions clearly indicate the build corresponds to Version 11.",
+        "Bundle creation script completes successfully and outputs a valid ZIP containing the /app build and Windows launch scripts."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui (compose them instead).",
-    "Keep the app offline-first and continue using the existing React Query queryKeys + invalidation pattern.",
-    "Respect the existing single-page app routing and offline bundle approach; no new backend services or external databases."
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
+    "Backend must remain single-actor architecture with all Motoko logic in backend/main.mo; only add backend/migration.mo if an upgrade requires state migration.",
+    "All user-facing text added/changed by this work must be in English."
   ],
   "nonGoals": [
-    "Do not change the UI feature set, screens, or navigation structure beyond what is necessary to fix storage/save failures.",
-    "Do not re-introduce Internet Identity login requirements or backend canister dependency for CRUD.",
-    "Do not redesign charts, calculations, or formatting (except where required due to the storage type fix)."
+    "Do not introduce new product features beyond ensuring Version 11 rebuild/deploy correctness and cache/update behavior.",
+    "Do not add third-party authentication providers or external databases/services."
   ],
   "imageRequirements": {
     "required": [],
@@ -95,9 +93,7 @@
   "userProfileUpdate": {
     "goalsToAdd": [],
     "goalsToRemove": [],
-    "preferencesToAdd": [
-      "Use English for any user-facing text."
-    ],
+    "preferencesToAdd": [],
     "preferencesToRemove": [],
     "miscToAdd": [],
     "miscToRemove": [],

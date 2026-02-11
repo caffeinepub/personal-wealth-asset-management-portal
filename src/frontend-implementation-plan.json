@@ -1,148 +1,119 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix offline IndexedDB persistence for Loans, Properties, and M(P/L) Matches",
+  "title": "Version 11 frontend rebuild artifacts, service-worker cache busting, and in-app update notice",
   "requirements": [
     {
-      "id": "REQ-48",
-      "summary": "Stabilize the offline persistence layer so create/save for Loans, Properties, and Matches works reliably and updates UI lists via existing React Query invalidation (no refresh needed).",
+      "id": "REQ-56",
+      "summary": "Ensure Version 11 frontend build artifacts and offline Windows bundle are produced from a clean, consistent build and remain runtime-stable across all existing modules.",
       "acceptanceCriteria": [
-        "On a fresh load, adding a Loan succeeds and shows the existing success toast (not the failure toast), and the new loan appears in the Loans table without requiring a refresh.",
-        "Adding a Property succeeds and the new property appears in the Property grid/list without requiring a refresh.",
-        "Creating a new M(P/L) Match succeeds and the new match appears in the match list without requiring a refresh.",
-        "No unhandled promise rejections appear in the browser console during these create actions."
+        "A clean production build completes successfully without manual intervention.",
+        "The deployed app loads all existing modules (Dashboard, Lending, Properties, Net Worth, Cashflow, Daily P/L, M(P/L)) without runtime errors.",
+        "The Windows offline ZIP bundle is regenerated from the same Version 11 build output and can be started via the provided Windows scripts."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/storage/indexedDb.ts",
+          "path": "frontend/offline-bundle/create-windows-offline-zip.mjs",
           "operation": "modify",
-          "description": "Fix IndexedDB CRUD helpers to use consistent key types (remove Number(...) coercions), improve transaction/request error propagation, and ensure create/write operations do not throw due to key/type mismatches."
+          "description": "Tighten bundle validation so the ZIP is always generated from the current build output (dist) and fails fast with clear English messages if the build is missing/empty or missing critical SPA/offline artifacts (e.g., index.html, asset directory). Also ensure the script overwrites/removes any previous ZIP with the same name to avoid stale artifacts being redistributed."
         },
         {
-          "path": "frontend/src/storage/loansRepo.ts",
+          "path": "frontend/offline-bundle/README.txt",
           "operation": "modify",
-          "description": "Update Loan persistence to write/read with a consistent IndexedDB-safe representation for IDs/timestamps and return correct runtime types so list + invalidation reflects new records immediately."
-        },
-        {
-          "path": "frontend/src/storage/propertiesRepo.ts",
-          "operation": "modify",
-          "description": "Update Property persistence to write/read with a consistent IndexedDB-safe representation for IDs/timestamps and return correct runtime types so list + invalidation reflects new records immediately."
-        },
-        {
-          "path": "frontend/src/storage/mplRepo.ts",
-          "operation": "modify",
-          "description": "Fix Match + Entry persistence and retrieval so match creation and listing entries for a match work reliably and invalidate the correct React Query caches without requiring refresh."
+          "description": "Update the offline bundle documentation to explicitly identify the bundle as Version 11 and confirm it contains all existing modules listed (Dashboard, Lending, Properties, Net Worth, Cashflow, Daily P/L, M(P/L)) with English text only."
         }
       ]
     },
     {
-      "id": "REQ-49",
-      "summary": "Make IndexedDB storage consistent by eliminating BigInt storage/key mismatches for IDs, timestamps, and indexed fields (e.g., entries.matchId), including safe read-back and timestamp comparisons.",
+      "id": "REQ-57",
+      "summary": "Implement Version 11 service-worker cache busting and caching behavior so new deployments reliably replace stale dashboard assets while preserving offline SPA navigation fallback.",
       "acceptanceCriteria": [
-        "All IndexedDB object stores used by Loans/Properties/M(P/L) can successfully persist records with their required fields, and subsequent list queries return the newly-created records.",
-        "M(P/L) entries store and retrieve correctly by matchId index (creating a match, adding an entry, and listing entries returns the new entry for that match).",
-        "Aggregations that compare timestamps (e.g., selecting the latest wealth inputs) work correctly with the persisted timestamp type."
+        "The service worker cache name/version is updated so a Version 11 deploy causes old caches to be replaced/invalidated.",
+        "After deployment, a user who revisits the app receives the new JS/CSS bundle rather than continuing to render the previous dashboard UI indefinitely.",
+        "SPA navigation fallback still works offline (navigating directly to routes like /properties, /daily-profit-loss, /match-pl works when offline after first load)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/storage/indexedDb.ts",
+          "path": "frontend/public/sw.js",
           "operation": "modify",
-          "description": "Bump the IndexedDB version and add a migration path to normalize persisted bigint-like fields (IDs/timestamps/index fields) into a single consistent storage type, ensuring future reads/queries use the same type."
+          "description": "Update the service worker cache naming/versioning to a Version 11-specific cache (and ensure old caches are deleted on activate). Adjust caching rules to prevent indefinite staleness of the app shell (index.html) while keeping offline support and SPA navigation fallback working for direct route visits after first load."
         },
         {
-          "path": "frontend/src/storage/mplRepo.ts",
+          "path": "frontend/src/pwa/registerServiceWorker.ts",
           "operation": "modify",
-          "description": "Ensure entries are written with an IndexedDB-index-compatible matchId type and listEntries queries by the same exact type, preventing index lookups from failing silently."
-        },
-        {
-          "path": "frontend/src/storage/loansRepo.ts",
-          "operation": "modify",
-          "description": "Normalize loan id/createdAt/updatedAt persistence to the same storage type used across repos, and deserialize back to runtime bigints so comparisons and formatting remain correct."
-        },
-        {
-          "path": "frontend/src/storage/propertiesRepo.ts",
-          "operation": "modify",
-          "description": "Normalize property id/acquisitionDate/createdAt/updatedAt persistence to the same storage type used across repos, and deserialize back to runtime bigints for correct date handling."
-        },
-        {
-          "path": "frontend/src/storage/wealthInputsRepo.ts",
-          "operation": "modify",
-          "description": "Normalize wealth-input id/createdAt/updatedAt persistence and deserialization so timestamp comparisons (latest updatedAt) remain correct after reading from IndexedDB."
-        },
-        {
-          "path": "frontend/src/storage/cashflowRepo.ts",
-          "operation": "modify",
-          "description": "Normalize cashflow entry id/createdAt/updatedAt persistence and deserialization so daily P/L grouping logic operates on correct bigint timestamps after reading from IndexedDB."
-        },
-        {
-          "path": "frontend/src/storage/aggregates.ts",
-          "operation": "modify",
-          "description": "Ensure aggregate computations that compare timestamps rely on correctly-deserialized bigint timestamps from storage (no mixed string/bigint comparisons)."
+          "description": "Enhance service worker registration to detect updates (installed worker waiting) and expose update-available signals to the React app (e.g., via callbacks or a small shared state helper). This enables cache-busting behavior to actually take effect in the client without relying on devtools."
         }
       ]
     },
     {
-      "id": "REQ-50",
-      "summary": "Improve user-facing save error toasts with actionable hints when storage is unavailable, while preserving existing success toasts; ensure underlying errors are logged for debugging without crashing UI.",
+      "id": "REQ-58",
+      "summary": "Add an in-app English update notice when a new service worker is waiting, allowing users to refresh to load Version 11 immediately.",
       "acceptanceCriteria": [
-        "If a save fails, the toast/error message is still in English and includes a brief reason/hint (where available) instead of only a generic 'Failed to save …' message.",
-        "The console log includes the underlying error object (or error message) for debugging, and the UI does not crash."
+        "When a new service worker is installed and waiting, the app shows a clear update message in English (e.g., \"A new version is available. Refresh to update.\").",
+        "The user can trigger the update flow (refresh/reload) without needing to open browser devtools or manually clear site data.",
+        "If no update is available, no update message is shown."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/storageErrors.ts",
+          "path": "frontend/src/pwa/useServiceWorkerUpdate.ts",
           "operation": "create",
-          "description": "Add a small helper to convert storage/IndexedDB errors into clear English messages with actionable hints (e.g., blocked storage context), while allowing the caller to keep existing success messages unchanged."
+          "description": "Create a small React hook that subscribes to the service worker update state from the registration helper and exposes: (1) whether an update is available, and (2) an action to activate the waiting worker then reload. Keep all user-facing text in English."
         },
         {
-          "path": "frontend/src/features/lending/components/LoanFormCard.tsx",
-          "operation": "modify",
-          "description": "Use the new storage error helper to show a clearer toast on save failure (keep the existing success toast text unchanged) and log the full underlying error object to the console."
+          "path": "frontend/src/components/pwa/ServiceWorkerUpdateNotice.tsx",
+          "operation": "create",
+          "description": "Create a user-facing update notice UI that appears only when an update is available and provides a clear English call-to-action (e.g., a button to refresh/update now). Prefer using the shadcn-ui component library styling patterns already present in the app (e.g., existing Button usage) to keep UI consistent. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/features/properties/components/PropertyFormCard.tsx",
+          "path": "frontend/src/components/layout/AppShell.tsx",
           "operation": "modify",
-          "description": "Use the new storage error helper to show a clearer toast on save failure (keep the existing success toast text unchanged) and log the full underlying error object to the console."
+          "description": "Wire the ServiceWorkerUpdateNotice into the existing layout (e.g., within the sticky header area) so it is visible across all modules/routes when an update is available, and hidden otherwise."
         },
         {
-          "path": "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "path": "frontend/src/pwa/registerServiceWorker.ts",
           "operation": "modify",
-          "description": "Use the new storage error helper to show a clearer toast on create failure (keep the existing success toast text unchanged) and log the full underlying error object to the console."
-        },
-        {
-          "path": "frontend/src/features/mpl/components/EntryFormCard.tsx",
-          "operation": "modify",
-          "description": "Improve failure toast(s) for adding an entry by using the same storage error helper and logging the underlying error, preventing generic failures when IndexedDB/index lookups fail."
+          "description": "Add the update activation mechanism used by the in-app notice (e.g., message the waiting worker to skip waiting / prompt activation) so clicking the notice action reliably updates and reloads without devtools."
         }
       ]
     },
     {
-      "id": "REQ-51",
-      "summary": "Add a runtime guard that detects when IndexedDB cannot be opened (e.g., file:// or blocked context) and shows a blocking in-app notice instructing users to run via localhost/local server scripts.",
+      "id": "REQ-59",
+      "summary": "Update offline Windows bundle metadata and user-facing identifiers to clearly reflect Version 11.",
       "acceptanceCriteria": [
-        "When the app is opened in a context where IndexedDB cannot be opened, the app shows a clear English message explaining the issue and how to fix it (run via the provided Windows local server scripts / localhost), instead of allowing silent failures on Save/Create.",
-        "When opened in a normal localhost-served context, the guard does not appear and normal app usage is unaffected."
+        "The offline-bundle configuration metadata includes Version 11 (or equivalent explicit version string).",
+        "The generated ZIP name and/or included instructions clearly indicate the build corresponds to Version 11.",
+        "Bundle creation script completes successfully and outputs a valid ZIP containing the /app build and Windows launch scripts."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/storage/IndexedDbGuard.tsx",
-          "operation": "create",
-          "description": "Create a blocking guard component that attempts to open IndexedDB at runtime; if it fails, render an in-app notice explaining that the app must be served from a local server origin (http://localhost/...) and not opened via file://."
+          "path": "frontend/offline-bundle/bundle.config.json",
+          "operation": "modify",
+          "description": "Set the offline bundle metadata version to an explicit Version 11 value and update the configured output ZIP name to include Version 11 for clear identification."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/offline-bundle/create-windows-offline-zip.mjs",
           "operation": "modify",
-          "description": "Wire the IndexedDbGuard into the root route composition so the notice blocks normal screens only when IndexedDB is unavailable, without adding new routes or changing navigation structure."
+          "description": "Ensure the ZIP output filename and console output clearly reflect Version 11 based on bundle.config.json, and (if appropriate) include a small version marker file inside the ZIP so recipients can verify the bundle version after extraction."
         },
         {
-          "path": "frontend/src/storage/indexedDb.ts",
+          "path": "frontend/offline-bundle/README.txt",
           "operation": "modify",
-          "description": "Expose/strengthen IndexedDB open error signals (including blocked/unsupported contexts) so the runtime guard can reliably detect and display the blocking notice."
+          "description": "Update the README header/body to clearly state this is Version 11, using English text only, and align any referenced ZIP name/instructions with the updated config."
         },
         {
           "path": "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
           "operation": "modify",
-          "description": "Align the in-app guard message wording with the existing Windows local server instructions (English), reinforcing the required localhost serving approach."
+          "description": "Update the instructions to clearly identify the bundle as Version 11 and keep any ZIP/app naming references consistent with the updated bundle config, using English text only."
+        },
+        {
+          "path": "frontend/offline-bundle/start-server-win.bat",
+          "operation": "modify",
+          "description": "Update the launcher banner text (English) to include Version 11 so users can confirm they are running the final release."
+        },
+        {
+          "path": "frontend/offline-bundle/start-server-win.ps1",
+          "operation": "modify",
+          "description": "Update the launcher banner text (English) to include Version 11 so users can confirm they are running the final release."
         }
       ]
     }

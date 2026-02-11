@@ -1,85 +1,45 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T11:18:34.225Z",
-  "summary": "Diff adds an IndexedDB runtime guard UI, introduces storage error utilities for clearer toasts/logging, and refactors several IndexedDB repositories to (apparently) normalize BigInt fields via deserializeFromStorage and numeric IDs. However, the diff evidence is incomplete/truncated for key parts of the persistence layer (notably put/getByIndex serialization), and it also includes several unrelated UI/logic changes not requested by the BuildRequest.",
+  "generatedAt": "2026-02-11T12:28:55.664Z",
+  "summary": "Implemented service worker cache versioning (v11) with cache cleanup and SPA offline fallback, plus an in-app update notice and supporting hook/registration utilities. Updated Windows offline bundle metadata/scripts/docs to Version 11. However, the diff also includes backend/main.mo changes that appear unrelated to cache busting/rebuild goals and may constitute new functionality beyond the request. The build/redeploy artifact production itself cannot be verified from the provided diff summary.",
   "missing_requirements": [
     {
-      "id": "REQ-48",
-      "requirement": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors; newly-created items appear in their lists without refresh; no unhandled promise rejections.",
-      "reason": "While forms now catch errors and show toasts, the diff summary does not provide evidence that React Query cache invalidation/refetch is correctly wired after creates/updates so that the new Loan/Property/Match appears immediately without refresh. The relevant React Query hooks/mutations and invalidation behavior are only referenced in a truncated file-summaries snippet, not shown in the diff content.",
+      "id": "REQ-56",
+      "requirement": "Produce Version 11 as a clean rebuild and redeploy of the current application state, ensuring all previously requested changes are included in the deployed artifacts (frontend build output and offline Windows bundle).",
+      "reason": "The diff shows code/config changes and offline-bundle metadata updates, but does not provide evidence of an actual clean rebuild/redeploy process completion or regenerated build artifacts (e.g., dist output) being produced from the same Version 11 build, nor anything verifying deployed modules load without runtime errors.",
       "evidence": [
-        "frontend/src/features/lending/components/LoanFormCard.tsx",
-        "frontend/src/features/properties/components/PropertyFormCard.tsx",
-        "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
-        "frontend-file-summaries.txt (mentions queryInvalidation/queryKeys changes but not shown)"
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "requirement": "Eliminate BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, indexed fields like matchId), ensuring records can be written and later read back correctly; entries retrievable by matchId index; timestamp comparisons work correctly.",
-      "reason": "There is evidence of converting IDs on reads (e.g., getById converts bigint->Number) and of deserializing BigInt fields in repos, but the key write-path implementation (e.g., put serialization) and the index query implementation (getByIndex) are not visible due to truncation. Without seeing put/getByIndex, the diff summary does not conclusively show BigInt fields (including matchId used in the 'entries' index) are consistently serialized for IndexedDB writes and index lookups.",
-      "evidence": [
-        "frontend/src/storage/indexedDb.ts (truncated: getById shown, put/getByIndex not shown)",
-        "frontend/src/storage/mplRepo.ts (listEntries uses getByIndex on matchId)",
-        "frontend/src/storage/propertiesRepo.ts",
-        "frontend/src/storage/loansRepo.ts",
-        "frontend/src/storage/cashflowRepo.ts",
-        "frontend/src/storage/wealthInputsRepo.ts",
-        "frontend/src/storage/dailyPl.ts"
+        "frontend/offline-bundle/bundle.config.json",
+        "frontend/offline-bundle/create-windows-offline-zip.mjs",
+        "frontend/public/sw.js",
+        "frontend/src/pwa/registerServiceWorker.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Changed loan interest/repayment calculations and tenure unit handling in lending table and insights charts.",
-      "reason": "Not requested; BuildRequest explicitly says not to redesign charts/calculations/formatting except where required due to storage type fix. These appear to be business-logic/visual changes unrelated to IndexedDB persistence fixes.",
+      "description": "Backend user profile management and related authorization/storage logic added/changed in backend/main.mo, which is not requested by the BuildRequest and may be a new product feature.",
+      "reason": "BuildRequest scope is limited to Version 11 rebuild/deploy correctness and cache/update behavior; backend functional changes (profiles, permissions) are not mentioned and are explicitly discouraged as 'new product features'.",
       "evidence": [
-        "frontend-file-summaries.txt (entries for frontend/src/features/lending/components/LoansTable.tsx and LendingInsights.tsx)"
-      ]
-    },
-    {
-      "description": "Auth-related behavior changes: AuthGate made non-blocking / always renders children; LoginButton emptied; profile setup dialog uses local storage instead of backend.",
-      "reason": "Not requested in REQ-48..51 and potentially changes app behavior beyond what is necessary to fix offline storage create/save failures.",
-      "evidence": [
-        "frontend-file-summaries.txt (entries for frontend/src/components/auth/AuthGate.tsx, LoginButton.tsx, ProfileSetupDialog.tsx)"
-      ]
-    },
-    {
-      "description": "Navigation/menu structure extended with an M(P/L) menu item (and dashboard quick actions updated).",
-      "reason": "BuildRequest non-goal says not to change UI feature set/screens/navigation beyond what is necessary to fix storage/save failures. Adding/adjusting navigation elements is not clearly required by the storage fix itself.",
-      "evidence": [
-        "frontend/src/features/dashboard/components/QuickActions.tsx",
-        "frontend-file-summaries.txt (entry for frontend/src/components/navigation/NavLinks.tsx)"
-      ]
-    },
-    {
-      "description": "Added/updated Windows offline bundle run instructions document.",
-      "reason": "Not part of REQ-48..51 implementation requirements (the runtime guard message is required, but adding a separate instructions document is not explicitly requested).",
-      "evidence": [
-        "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt"
+        "backend/main.mo"
       ]
     }
   ],
-  "confidence": 0.63,
+  "confidence": 0.68,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/offline-bundle/README.txt",
     "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/storage/IndexedDbGuard.tsx",
-    "frontend/src/features/dashboard/components/QuickActions.tsx",
-    "frontend/src/features/lending/components/LoanFormCard.tsx",
-    "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
-    "frontend/src/features/mpl/components/EntryFormCard.tsx",
-    "frontend/src/features/properties/components/PropertyFormCard.tsx",
-    "frontend/src/storage/cashflowRepo.ts",
-    "frontend/src/storage/dailyPl.ts",
-    "frontend/src/storage/indexedDb.ts",
-    "frontend/src/storage/loansRepo.ts",
-    "frontend/src/storage/mplRepo.ts",
-    "frontend/src/storage/propertiesRepo.ts",
-    "frontend/src/storage/wealthInputsRepo.ts",
-    "frontend/src/utils/storageErrors.ts",
+    "frontend/offline-bundle/bundle.config.json",
+    "frontend/offline-bundle/create-windows-offline-zip.mjs",
+    "frontend/offline-bundle/start-server-win.bat",
+    "frontend/offline-bundle/start-server-win.ps1",
+    "frontend/public/sw.js",
+    "frontend/src/components/layout/AppShell.tsx",
+    "frontend/src/components/pwa/ServiceWorkerUpdateNotice.tsx",
+    "frontend/src/pwa/registerServiceWorker.ts",
+    "frontend/src/pwa/useServiceWorkerUpdate.ts",
     "project_state.json"
   ]
 }

@@ -27,6 +27,7 @@ export async function openDB(): Promise<IDBDatabase> {
     request.onerror = () => {
       const error = request.error || new Error('Failed to open IndexedDB');
       dbError = error;
+      console.error('IndexedDB open error:', error);
       reject(error);
     };
 
@@ -38,12 +39,15 @@ export async function openDB(): Promise<IDBDatabase> {
     request.onblocked = () => {
       const error = new Error('IndexedDB blocked - please close other tabs');
       dbError = error;
+      console.error('IndexedDB blocked:', error);
       reject(error);
     };
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       const oldVersion = event.oldVersion;
+
+      console.log(`Upgrading IndexedDB from version ${oldVersion} to ${DB_VERSION}`);
 
       // Create object stores
       if (!db.objectStoreNames.contains('loans')) {
@@ -72,8 +76,7 @@ export async function openDB(): Promise<IDBDatabase> {
         db.createObjectStore('counters', { keyPath: 'entity' });
       }
 
-      // Migration from v1 to v2: no data migration needed, just version bump
-      // Future writes will use Number format, reads will handle both
+      console.log('IndexedDB upgrade complete');
     };
   });
 }
@@ -89,58 +92,98 @@ export async function isIndexedDBAvailable(): Promise<boolean> {
 }
 
 export async function getAll<T>(storeName: string): Promise<T[]> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readonly');
-    const store = transaction.objectStore(storeName);
-    const request = store.getAll();
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readonly');
+      const store = transaction.objectStore(storeName);
+      const request = store.getAll();
 
-    request.onsuccess = () => resolve(request.result as T[]);
-    request.onerror = () => reject(request.error || new Error(`Failed to get all from ${storeName}`));
-  });
+      request.onsuccess = () => resolve(request.result as T[]);
+      request.onerror = () => {
+        const error = request.error || new Error(`Failed to get all from ${storeName}`);
+        console.error(`getAll error for ${storeName}:`, error);
+        reject(error);
+      };
+    });
+  } catch (error) {
+    console.error(`getAll failed for ${storeName}:`, error);
+    throw error;
+  }
 }
 
 export async function getById<T>(storeName: string, id: bigint | number): Promise<T | null> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readonly');
-    const store = transaction.objectStore(storeName);
-    const numericId = typeof id === 'bigint' ? Number(id) : id;
-    const request = store.get(numericId);
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readonly');
+      const store = transaction.objectStore(storeName);
+      const numericId = typeof id === 'bigint' ? Number(id) : id;
+      const request = store.get(numericId);
 
-    request.onsuccess = () => resolve(request.result || null);
-    request.onerror = () => reject(request.error || new Error(`Failed to get ${storeName} by id ${numericId}`));
-  });
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => {
+        const error = request.error || new Error(`Failed to get ${storeName} by id ${numericId}`);
+        console.error(`getById error for ${storeName}:`, error);
+        reject(error);
+      };
+    });
+  } catch (error) {
+    console.error(`getById failed for ${storeName}:`, error);
+    throw error;
+  }
 }
 
 export async function put<T>(storeName: string, value: T): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readwrite');
-    const store = transaction.objectStore(storeName);
-    
-    // Convert BigInt fields to Number for IndexedDB storage
-    const serializedValue = serializeForStorage(value);
-    const request = store.put(serializedValue);
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readwrite');
+      const store = transaction.objectStore(storeName);
+      
+      // Convert BigInt fields to Number for IndexedDB storage
+      const serializedValue = serializeForStorage(value);
+      const request = store.put(serializedValue);
 
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error || new Error(`Failed to put into ${storeName}`));
-    
-    transaction.onerror = () => reject(transaction.error || new Error(`Transaction failed for ${storeName}`));
-  });
+      request.onsuccess = () => resolve();
+      request.onerror = () => {
+        const error = request.error || new Error(`Failed to put into ${storeName}`);
+        console.error(`put error for ${storeName}:`, error, 'value:', serializedValue);
+        reject(error);
+      };
+      
+      transaction.onerror = () => {
+        const error = transaction.error || new Error(`Transaction failed for ${storeName}`);
+        console.error(`transaction error for ${storeName}:`, error);
+        reject(error);
+      };
+    });
+  } catch (error) {
+    console.error(`put failed for ${storeName}:`, error);
+    throw error;
+  }
 }
 
 export async function deleteById(storeName: string, id: bigint | number): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readwrite');
-    const store = transaction.objectStore(storeName);
-    const numericId = typeof id === 'bigint' ? Number(id) : id;
-    const request = store.delete(numericId);
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const numericId = typeof id === 'bigint' ? Number(id) : id;
+      const request = store.delete(numericId);
 
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error || new Error(`Failed to delete from ${storeName}`));
-  });
+      request.onsuccess = () => resolve();
+      request.onerror = () => {
+        const error = request.error || new Error(`Failed to delete from ${storeName}`);
+        console.error(`deleteById error for ${storeName}:`, error);
+        reject(error);
+      };
+    });
+  } catch (error) {
+    console.error(`deleteById failed for ${storeName}:`, error);
+    throw error;
+  }
 }
 
 export async function getByIndex<T>(
@@ -148,19 +191,28 @@ export async function getByIndex<T>(
   indexName: string,
   value: any
 ): Promise<T[]> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readonly');
-    const store = transaction.objectStore(storeName);
-    const index = store.index(indexName);
-    
-    // Convert BigInt to Number for index lookup
-    const numericValue = typeof value === 'bigint' ? Number(value) : value;
-    const request = index.getAll(numericValue);
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readonly');
+      const store = transaction.objectStore(storeName);
+      const index = store.index(indexName);
+      
+      // Convert BigInt to Number for index lookup
+      const numericValue = typeof value === 'bigint' ? Number(value) : value;
+      const request = index.getAll(numericValue);
 
-    request.onsuccess = () => resolve(request.result as T[]);
-    request.onerror = () => reject(request.error || new Error(`Failed to get by index ${indexName} from ${storeName}`));
-  });
+      request.onsuccess = () => resolve(request.result as T[]);
+      request.onerror = () => {
+        const error = request.error || new Error(`Failed to get by index ${indexName} from ${storeName}`);
+        console.error(`getByIndex error for ${storeName}:`, error);
+        reject(error);
+      };
+    });
+  } catch (error) {
+    console.error(`getByIndex failed for ${storeName}:`, error);
+    throw error;
+  }
 }
 
 // Helper to convert BigInt to Number for storage

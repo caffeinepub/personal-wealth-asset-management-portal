@@ -1,5 +1,6 @@
 ================================================================================
   Personal Wealth & Asset Management Portal - Windows Offline Bundle
+  Version 11
 ================================================================================
 
 Welcome! This package contains everything you need to run the Personal Wealth
@@ -24,7 +25,8 @@ connection.
   WHAT'S INCLUDED
 ================================================================================
 
-📁 app/                          - Complete application files
+📁 app/                          - Complete application files (Version 11)
+📄 VERSION.txt                   - Version information and build details
 📄 WINDOWS_RUN_INSTRUCTIONS.txt  - Detailed setup and troubleshooting guide
 🚀 start-server-win.bat          - Windows batch launcher script
 🚀 start-server-win.ps1          - Windows PowerShell launcher script
@@ -43,10 +45,10 @@ If you don't have Node.js or Python installed, download from:
   • Python: https://www.python.org/ (alternative)
 
 ================================================================================
-  FEATURES
+  FEATURES - VERSION 11
 ================================================================================
 
-This offline-capable platform includes:
+This offline-capable platform includes all existing modules:
 
 ✓ Dashboard - Overview of your wealth and assets
 ✓ Lending - Track loans and interest calculations  
@@ -57,6 +59,11 @@ This offline-capable platform includes:
 ✓ M(P/L) - Match betting profit/loss tracking
 
 All data is stored locally in your browser - no internet required!
+
+Version 11 improvements:
+• Enhanced cache management for reliable updates
+• Improved offline functionality
+• Better update notifications
 
 ================================================================================
   SUPPORT
@@ -69,3 +76,4 @@ Built with ❤️ using caffeine.ai
 https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=wealth-portal
 
 ================================================================================
+

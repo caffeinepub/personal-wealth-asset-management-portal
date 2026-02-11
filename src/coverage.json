@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T11:18:34.230Z",
+  "generatedAt": "2026-02-11T12:28:55.669Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,103 +11,88 @@
     "implemented": 4,
     "items": [
       {
-        "id": "REQ-48",
-        "summary": "Fix the local persistence layer so that creating/saving records works reliably across the app (at minimum: saving a new loan, saving a new property, and creating a new match) without throwing errors.",
+        "id": "REQ-56",
+        "summary": "Produce Version 11 as a clean rebuild and redeploy of the current application state, ensuring all previously requested changes are included in the deployed artifacts (frontend build output and offline Windows bundle).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/storage/indexedDb.ts",
-          "frontend/src/storage/loansRepo.ts",
-          "frontend/src/storage/propertiesRepo.ts",
-          "frontend/src/storage/mplRepo.ts"
+          "frontend/offline-bundle/create-windows-offline-zip.mjs",
+          "frontend/offline-bundle/README.txt"
         ],
         "matchedFiles": [
-          "frontend/src/storage/indexedDb.ts",
-          "frontend/src/storage/loansRepo.ts",
-          "frontend/src/storage/propertiesRepo.ts",
-          "frontend/src/storage/mplRepo.ts"
+          "frontend/offline-bundle/create-windows-offline-zip.mjs",
+          "frontend/offline-bundle/README.txt"
         ]
       },
       {
-        "id": "REQ-49",
-        "summary": "Make IndexedDB storage compatible and consistent by eliminating BigInt storage/key mismatches in IndexedDB reads/writes (IDs, timestamps, and indexed fields like matchId), ensuring that data can be written and later read back correctly.",
+        "id": "REQ-57",
+        "summary": "Fix the stale-UI issue by implementing Version 11 cache-busting for the service worker so that after deployment, clients do not stay stuck on older cached dashboard assets.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/storage/indexedDb.ts",
-          "frontend/src/storage/mplRepo.ts",
-          "frontend/src/storage/loansRepo.ts",
-          "frontend/src/storage/propertiesRepo.ts",
-          "frontend/src/storage/wealthInputsRepo.ts",
-          "frontend/src/storage/cashflowRepo.ts",
-          "frontend/src/storage/aggregates.ts"
+          "frontend/public/sw.js",
+          "frontend/src/pwa/registerServiceWorker.ts"
         ],
         "matchedFiles": [
-          "frontend/src/storage/indexedDb.ts",
-          "frontend/src/storage/mplRepo.ts",
-          "frontend/src/storage/loansRepo.ts",
-          "frontend/src/storage/propertiesRepo.ts",
-          "frontend/src/storage/wealthInputsRepo.ts",
-          "frontend/src/storage/cashflowRepo.ts"
+          "frontend/public/sw.js",
+          "frontend/src/pwa/registerServiceWorker.ts"
         ]
       },
       {
-        "id": "REQ-50",
-        "summary": "Improve error reporting for failed saves: when a create/save mutation fails, surface a clearer user-facing error message that includes a short actionable hint when storage is unavailable (e.g., blocked storage context), while keeping existing success messages unchanged.",
+        "id": "REQ-58",
+        "summary": "Add a user-facing in-app update notice when a new service worker is available so users can refresh to load the latest Version 11 UI, using English text.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/storageErrors.ts",
-          "frontend/src/features/lending/components/LoanFormCard.tsx",
-          "frontend/src/features/properties/components/PropertyFormCard.tsx",
-          "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
-          "frontend/src/features/mpl/components/EntryFormCard.tsx"
+          "frontend/src/pwa/useServiceWorkerUpdate.ts",
+          "frontend/src/components/pwa/ServiceWorkerUpdateNotice.tsx",
+          "frontend/src/components/layout/AppShell.tsx",
+          "frontend/src/pwa/registerServiceWorker.ts"
         ],
         "matchedFiles": [
-          "frontend/src/utils/storageErrors.ts",
-          "frontend/src/features/lending/components/LoanFormCard.tsx",
-          "frontend/src/features/properties/components/PropertyFormCard.tsx",
-          "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
-          "frontend/src/features/mpl/components/EntryFormCard.tsx"
+          "frontend/src/pwa/useServiceWorkerUpdate.ts",
+          "frontend/src/components/pwa/ServiceWorkerUpdateNotice.tsx",
+          "frontend/src/components/layout/AppShell.tsx",
+          "frontend/src/pwa/registerServiceWorker.ts"
         ]
       },
       {
-        "id": "REQ-51",
-        "summary": "Add a runtime guard for unsupported execution contexts where IndexedDB is unavailable (or blocked), and show an in-app blocking notice explaining that the app must be run from a local server origin (http://localhost/...) rather than directly opening index.html via file://.",
+        "id": "REQ-59",
+        "summary": "Update the offline Windows bundle metadata to reflect Version 11 so the generated ZIP and included metadata clearly identify the final release version.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/storage/IndexedDbGuard.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/storage/indexedDb.ts",
-          "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt"
+          "frontend/offline-bundle/bundle.config.json",
+          "frontend/offline-bundle/create-windows-offline-zip.mjs",
+          "frontend/offline-bundle/README.txt",
+          "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
+          "frontend/offline-bundle/start-server-win.bat",
+          "frontend/offline-bundle/start-server-win.ps1"
         ],
         "matchedFiles": [
-          "frontend/src/components/storage/IndexedDbGuard.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/storage/indexedDb.ts",
-          "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt"
+          "frontend/offline-bundle/bundle.config.json",
+          "frontend/offline-bundle/create-windows-offline-zip.mjs",
+          "frontend/offline-bundle/README.txt",
+          "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
+          "frontend/offline-bundle/start-server-win.bat",
+          "frontend/offline-bundle/start-server-win.ps1"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/offline-bundle/README.txt",
     "frontend/offline-bundle/WINDOWS_RUN_INSTRUCTIONS.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/storage/IndexedDbGuard.tsx",
-    "frontend/src/features/dashboard/components/QuickActions.tsx",
-    "frontend/src/features/lending/components/LoanFormCard.tsx",
-    "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
-    "frontend/src/features/mpl/components/EntryFormCard.tsx",
-    "frontend/src/features/properties/components/PropertyFormCard.tsx",
-    "frontend/src/storage/cashflowRepo.ts",
-    "frontend/src/storage/dailyPl.ts",
-    "frontend/src/storage/indexedDb.ts",
-    "frontend/src/storage/loansRepo.ts",
-    "frontend/src/storage/mplRepo.ts",
-    "frontend/src/storage/propertiesRepo.ts",
-    "frontend/src/storage/wealthInputsRepo.ts",
-    "frontend/src/utils/storageErrors.ts",
+    "frontend/offline-bundle/bundle.config.json",
+    "frontend/offline-bundle/create-windows-offline-zip.mjs",
+    "frontend/offline-bundle/start-server-win.bat",
+    "frontend/offline-bundle/start-server-win.ps1",
+    "frontend/public/sw.js",
+    "frontend/src/components/layout/AppShell.tsx",
+    "frontend/src/components/pwa/ServiceWorkerUpdateNotice.tsx",
+    "frontend/src/pwa/registerServiceWorker.ts",
+    "frontend/src/pwa/useServiceWorkerUpdate.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,6 +1,7 @@
 @echo off
 REM ============================================================================
 REM Personal Wealth & Asset Management Portal - Windows Launcher (Batch)
+REM Version 11
 REM ============================================================================
 REM This script starts a local web server to run the app on Windows.
 REM It checks for Node.js and starts the server automatically.
@@ -9,6 +10,7 @@ REM ============================================================================
 echo.
 echo ========================================================================
 echo   Personal Wealth ^& Asset Management Portal - Windows Launcher
+echo   Version 11
 echo ========================================================================
 echo.
 
@@ -86,3 +88,4 @@ echo   Server stopped
 echo ========================================================================
 echo.
 pause
+

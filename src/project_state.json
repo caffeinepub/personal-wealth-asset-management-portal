@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 19,
+  "projectStateVersion": 23,
   "summary": "Shift to a Windows-downloadable version of the offline-capable portal: rebuild the platform so it can be downloaded and run on Windows (e.g., packaged desktop app or Windows-friendly offline bundle), while preserving the existing UI/features and offline/local-data behavior.",
   "architectural_notes": [
     "Frontend: React + Tailwind CSS; responsive, dashboard-centric dark FinTech aesthetic (emerald + gold accents).",
@@ -19,7 +19,10 @@
     "Deployment/build encountered an error ('We hit a snag during deployment'); user requested retry.",
     "Caffeine builder shows no draft available ('You don’t have a draft yet').",
     "App error observed: 'Failed to save entry' when adding a Cashflow entry.",
-    "App error observed: immediate popup failures on create actions across modules (\"Failed to save loan\", similar failures for properties and creating matches)."
+    "App error observed: immediate popup failures on create actions across modules (\"Failed to save loan\", similar failures for properties and creating matches).",
+    "User reports Daily P/L module/page is missing (not visible/available in the app UI).",
+    "User reports inability to create a new Property and create a new Match (create actions failing).",
+    "User reports deployed app still shows the same (old) dashboard after release; likely browser/service-worker caching or cache-busting issue causing updated assets not to load immediately."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -350,6 +353,62 @@
         "REQ-51"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-route-path-mismatches-so-the-navigation-links-resolve-to-valid-pages-no-not-found-screens-align-tanstack-router-route-paths-in-frontend-src-app-tsx-with-the-paths-used-by-frontend-src-components-navigation-navlinks-tsx-and-any-other-in-app-navigations-for-properties-net-worth-daily-p-l-and-m-p-l",
+      "title": "Fix route/path mismatches so the navigation links resolve to valid pages (no 'Not Found' screens). Align TanStack Router route paths in `frontend/src/App.tsx` with the paths used by `frontend/src/components/navigation/NavLinks.tsx` (and any other in-app navigations) for: Properties, Net Worth, Daily P/L, and M(P/L).",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-daily-profit-loss-page-is-accessible-from-the-main-app-shell-navigation-and-renders-the-daily-report-derived-from-locally-stored-cashflow-entries-offline",
+      "title": "Ensure the Daily Profit/Loss page is accessible from the main app shell navigation and renders the daily report derived from locally stored cashflow entries (offline).",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-any-remaining-issues-preventing-users-from-creating-a-new-property-and-creating-a-new-match-in-m-p-l-when-running-in-a-supported-context-http-localhost-via-the-offline-bundle-this-includes-resolving-any-indexeddb-write-read-failures-bigint-number-serialization-mismatches-and-ensuring-react-query-caches-update-after-successful-mutations",
+      "title": "Fix any remaining issues preventing users from creating a new Property and creating a new Match in M(P/L) when running in a supported context (http://localhost via the offline bundle). This includes resolving any IndexedDB write/read failures, BigInt/Number serialization mismatches, and ensuring React Query caches update after successful mutations.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-produce-version-11-as-a-clean-rebuild-and-redeploy-of-the-current-application-state-ensuring-all-previously-requested-changes-are-included-in-the-deployed-artifacts-frontend-build-output-and-offline-windows-bundle",
+      "title": "Produce Version 11 as a clean rebuild and redeploy of the current application state, ensuring all previously requested changes are included in the deployed artifacts (frontend build output and offline Windows bundle).",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-stale-ui-issue-by-implementing-version-11-cache-busting-for-the-service-worker-so-that-after-deployment-clients-do-not-stay-stuck-on-older-cached-dashboard-assets",
+      "title": "Fix the stale-UI issue by implementing Version 11 cache-busting for the service worker so that after deployment, clients do not stay stuck on older cached dashboard assets.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-user-facing-in-app-update-notice-when-a-new-service-worker-is-available-so-users-can-refresh-to-load-the-latest-version-11-ui-using-english-text",
+      "title": "Add a user-facing in-app update notice when a new service worker is available so users can refresh to load the latest Version 11 UI, using English text.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-offline-windows-bundle-metadata-to-reflect-version-11-so-the-generated-zip-and-included-metadata-clearly-identify-the-final-release-version",
+      "title": "Update the offline Windows bundle metadata to reflect Version 11 so the generated ZIP and included metadata clearly identify the final release version.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -527,6 +586,14 @@
       "id": "AR-33",
       "summary": "Rebuild/package the entire offline platform for Windows downloadability (Windows runnable distribution such as a packaged desktop app or Windows-friendly offline bundle)",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Rebuild and deploy the corrected application, verifying that the deployed build includes the fixed routing/navigation and that create flows for Properties and M(P/L) work end-to-end in the deployed environment.",
+      "reqIds": [
+        "REQ-55"
+      ],
       "status": "pending"
     }
   ],

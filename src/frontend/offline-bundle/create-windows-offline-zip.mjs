@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Windows Offline Bundle Creator
+ * Windows Offline Bundle Creator - Version 11
  * 
  * This script creates a ZIP archive containing the complete static build
  * of the Personal Wealth & Asset Management platform for offline use on Windows.
@@ -32,8 +32,9 @@ try {
 
 const {
   buildOutputDir = 'dist',
-  outputZipName = 'wealth-portal-windows-offline.zip',
+  outputZipName = 'wealth-portal-windows-offline-v11.zip',
   defaultPort = 3000,
+  version = '11.0.0',
 } = config;
 
 // Resolve paths
@@ -42,9 +43,9 @@ const buildDir = path.join(frontendRoot, buildOutputDir);
 const outputZipPath = path.join(frontendRoot, outputZipName);
 const bundleDir = __dirname;
 
-console.log('🚀 Starting Windows Offline Bundle Creation...\n');
+console.log(`🚀 Starting Windows Offline Bundle Creation - Version ${version}...\n`);
 
-// Step 1: Validate build directory exists
+// Step 1: Validate build directory exists and is not empty
 console.log('📁 Validating build directory...');
 if (!fs.existsSync(buildDir)) {
   console.error(`❌ Build directory not found: ${buildDir}`);
@@ -59,9 +60,39 @@ if (buildFiles.length === 0) {
   process.exit(1);
 }
 
-console.log(`✅ Build directory validated: ${buildDir}\n`);
+// Validate critical SPA artifacts
+const indexHtmlPath = path.join(buildDir, 'index.html');
+if (!fs.existsSync(indexHtmlPath)) {
+  console.error(`❌ Critical file missing: index.html not found in ${buildDir}`);
+  console.error('   The build output is incomplete. Please rebuild the application.');
+  process.exit(1);
+}
 
-// Step 2: Create ZIP archive
+const assetsDir = path.join(buildDir, 'assets');
+if (!fs.existsSync(assetsDir)) {
+  console.warn(`⚠️  Warning: assets directory not found in ${buildDir}`);
+  console.warn('   The build may be incomplete, but continuing...');
+}
+
+console.log(`✅ Build directory validated: ${buildDir}`);
+console.log(`   - index.html: ✓`);
+console.log(`   - assets directory: ${fs.existsSync(assetsDir) ? '✓' : '⚠️  missing'}`);
+console.log(`   - Total files: ${buildFiles.length}\n`);
+
+// Step 2: Remove any existing ZIP with the same name
+if (fs.existsSync(outputZipPath)) {
+  console.log('🗑️  Removing previous ZIP archive...');
+  try {
+    fs.unlinkSync(outputZipPath);
+    console.log(`✅ Removed old archive: ${outputZipName}\n`);
+  } catch (error) {
+    console.error(`❌ Failed to remove old archive: ${error.message}`);
+    console.error('   Please delete it manually and try again.');
+    process.exit(1);
+  }
+}
+
+// Step 3: Create ZIP archive
 console.log('📦 Creating ZIP archive...');
 
 const output = createWriteStream(outputZipPath);
@@ -74,7 +105,8 @@ output.on('close', () => {
   console.log(`✅ ZIP archive created successfully!`);
   console.log(`   File: ${outputZipPath}`);
   console.log(`   Size: ${sizeInMB} MB`);
-  console.log(`\n🎉 Windows offline bundle is ready for download!`);
+  console.log(`   Version: ${version}`);
+  console.log(`\n🎉 Windows offline bundle Version ${version} is ready for download!`);
   console.log(`\n📝 Next steps:`);
   console.log(`   1. Extract the ZIP file on your Windows machine`);
   console.log(`   2. Read WINDOWS_RUN_INSTRUCTIONS.txt for setup instructions`);
@@ -104,6 +136,11 @@ archive.pipe(output);
 // Add build files to archive
 console.log('   Adding build files...');
 archive.directory(buildDir, 'app');
+
+// Add version marker file
+console.log('   Adding version marker...');
+const versionContent = `Version: ${version}\nBuild Date: ${new Date().toISOString()}\nModules: Dashboard, Lending, Properties, Net Worth, Cashflow, Daily P/L, M(P/L)\n`;
+archive.append(versionContent, { name: 'VERSION.txt' });
 
 // Add Windows instructions
 const instructionsPath = path.join(bundleDir, 'WINDOWS_RUN_INSTRUCTIONS.txt');
@@ -141,3 +178,4 @@ if (fs.existsSync(readmePath)) {
 
 // Finalize the archive
 archive.finalize();
+

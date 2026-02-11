@@ -1,5 +1,6 @@
 # ============================================================================
 # Personal Wealth & Asset Management Portal - Windows Launcher (PowerShell)
+# Version 11
 # ============================================================================
 # This script starts a local web server to run the app on Windows.
 # It checks for Node.js or Python and starts an appropriate server.
@@ -8,6 +9,7 @@
 Write-Host ""
 Write-Host "========================================================================"
 Write-Host "  Personal Wealth & Asset Management Portal - Windows Launcher"
+Write-Host "  Version 11"
 Write-Host "========================================================================"
 Write-Host ""
 
@@ -136,3 +138,4 @@ Write-Host "====================================================================
 Write-Host ""
 Read-Host "Press Enter to exit"
 exit 1
+

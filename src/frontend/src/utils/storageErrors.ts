@@ -1,50 +1,41 @@
 export function getStorageErrorMessage(error: unknown): string {
-  if (!error) return 'Unknown storage error';
-
-  const errorMessage = error instanceof Error ? error.message : String(error);
-
-  // IndexedDB specific errors
-  if (errorMessage.includes('blocked')) {
-    return 'Storage is blocked. Please close other tabs and try again.';
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    
+    // User-friendly messages for common errors
+    if (message.includes('indexeddb')) {
+      return 'Storage is unavailable. Please ensure you are running the app through a local server (not by opening index.html directly).';
+    }
+    
+    if (message.includes('blocked')) {
+      return 'Storage is blocked. Please close other tabs running this app and try again.';
+    }
+    
+    if (message.includes('quota') || message.includes('storage')) {
+      return 'Storage quota exceeded. Please clear some data or free up disk space.';
+    }
+    
+    if (message.includes('transaction')) {
+      return 'Storage transaction failed. Please try again.';
+    }
+    
+    if (message.includes('settled match')) {
+      return 'Cannot modify a settled match. Please create a new match instead.';
+    }
+    
+    // Return the original error message if it's already user-friendly
+    if (message.includes('failed to')) {
+      return error.message;
+    }
   }
-
-  if (errorMessage.includes('QuotaExceededError') || errorMessage.includes('quota')) {
-    return 'Storage quota exceeded. Please free up space.';
-  }
-
-  if (errorMessage.includes('VersionError')) {
-    return 'Storage version conflict. Please refresh the page.';
-  }
-
-  if (errorMessage.includes('InvalidStateError')) {
-    return 'Storage is not available. Please ensure you are using a supported browser.';
-  }
-
-  if (errorMessage.includes('NotFoundError')) {
-    return 'Storage not found. Data may have been cleared.';
-  }
-
-  if (errorMessage.includes('settled match')) {
-    return 'Cannot modify a settled match.';
-  }
-
-  // File protocol detection
-  if (window.location.protocol === 'file:') {
-    return 'Storage requires a web server. Please use the provided local server scripts.';
-  }
-
-  // Generic fallback
-  return 'Storage operation failed. Please try again.';
+  
+  return 'An unexpected error occurred. Please try again.';
 }
 
-export function logStorageError(operation: string, error: unknown): void {
-  console.error(`Storage error during ${operation}:`, error);
-  
-  if (error instanceof Error) {
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    });
-  }
+export function logStorageError(operation: string, error: unknown, context?: any): void {
+  console.error(`Storage error during ${operation}:`, {
+    error,
+    context,
+    timestamp: new Date().toISOString(),
+  });
 }

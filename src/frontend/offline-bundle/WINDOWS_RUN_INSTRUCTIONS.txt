@@ -1,5 +1,5 @@
 ═══════════════════════════════════════════════════════════════════════════════
-  WEALTH PORTAL - WINDOWS OFFLINE BUNDLE - SETUP INSTRUCTIONS
+  WEALTH PORTAL - WINDOWS OFFLINE BUNDLE - VERSION 11 - SETUP INSTRUCTIONS
 ═══════════════════════════════════════════════════════════════════════════════
 
 IMPORTANT: This application MUST be served from a local web server.
@@ -43,7 +43,7 @@ METHOD 2: Using PowerShell Script
 If you have Node.js installed:
 -------------------------------
 1. Open Command Prompt or PowerShell in this folder
-2. Run: npx serve -s . -l 3000
+2. Run: npx serve app -s -l 3000
 3. Open browser to: http://localhost:3000
 
 If you have Python installed:
@@ -79,10 +79,15 @@ Solution: Install Node.js from https://nodejs.org/ or Python from
           https://www.python.org/downloads/
 
 Problem: Browser shows "Cannot GET /"
-Solution: Make sure you're in the correct folder containing index.html
+Solution: Make sure you're in the correct folder containing the app directory
+
+Problem: Old version still showing after update
+Solution: Clear your browser cache or do a hard refresh (Ctrl+F5 on Windows,
+          Cmd+Shift+R on Mac). The app will show an update notification when
+          a new version is available.
 
 ═══════════════════════════════════════════════════════════════════════════════
-  FEATURES & OFFLINE USAGE
+  FEATURES & OFFLINE USAGE - VERSION 11
 ═══════════════════════════════════════════════════════════════════════════════
 
 ✓ Fully offline after first load
@@ -90,6 +95,17 @@ Solution: Make sure you're in the correct folder containing index.html
 ✓ No internet connection required after setup
 ✓ Data persists between sessions
 ✓ Works on Windows 7, 8, 10, 11
+✓ Automatic update notifications (Version 11)
+✓ Enhanced cache management (Version 11)
+
+All Modules Included:
+• Dashboard - Wealth overview and quick actions
+• Lending - Loan management and interest tracking
+• Properties - Property portfolio management
+• Net Worth - Total wealth calculation
+• Cashflow - Money to collect and give tracking
+• Daily P/L - Daily profit/loss reports
+• M(P/L) - Match betting profit/loss tracking
 
 Supported Browsers:
 - Chrome / Edge (Recommended)
@@ -119,3 +135,4 @@ https://caffeine.ai
 
 Built with ❤️ using caffeine.ai
 ═══════════════════════════════════════════════════════════════════════════════
+

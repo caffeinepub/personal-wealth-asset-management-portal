@@ -4,12 +4,16 @@ import { Menu, X, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import NavLinks from '../navigation/NavLinks';
+import ServiceWorkerUpdateNotice from '../pwa/ServiceWorkerUpdateNotice';
 
 export default function AppShell() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Service Worker Update Notice */}
+      <ServiceWorkerUpdateNotice />
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container flex h-16 items-center justify-between px-4">
@@ -74,3 +78,4 @@ export default function AppShell() {
     </div>
   );
 }
+

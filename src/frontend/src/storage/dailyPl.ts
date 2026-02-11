@@ -1,24 +1,30 @@
 import { listCashflowEntries } from './cashflowRepo';
 import type { DailyReport, DaywiseSummary } from '@/backend';
 
+// Microseconds per day (not nanoseconds)
+const MICROSECONDS_PER_DAY = BigInt(24 * 60 * 60 * 1000000);
+
 export async function generateDailyReport(): Promise<DailyReport> {
   const entries = await listCashflowEntries();
 
   // Group entries by day
-  const dayMap = new Map<number, typeof entries>();
+  const dayMap = new Map<string, typeof entries>();
 
   for (const entry of entries) {
-    const dayTimestamp = Number(entry.createdAt / BigInt(24 * 60 * 60 * 1000000000));
-    if (!dayMap.has(dayTimestamp)) {
-      dayMap.set(dayTimestamp, []);
+    // Convert microsecond timestamp to day number
+    const dayTimestamp = entry.createdAt / MICROSECONDS_PER_DAY;
+    const dayKey = dayTimestamp.toString();
+    
+    if (!dayMap.has(dayKey)) {
+      dayMap.set(dayKey, []);
     }
-    dayMap.get(dayTimestamp)!.push(entry);
+    dayMap.get(dayKey)!.push(entry);
   }
 
   // Calculate daily summaries
   const dailySummaries: DaywiseSummary[] = [];
   
-  for (const [day, dayEntries] of dayMap.entries()) {
+  for (const [dayKey, dayEntries] of dayMap.entries()) {
     let totalCredit = 0;
     let totalDebit = 0;
 
@@ -31,7 +37,7 @@ export async function generateDailyReport(): Promise<DailyReport> {
     }
 
     dailySummaries.push({
-      date: BigInt(day),
+      date: BigInt(dayKey),
       totalCredit,
       totalDebit,
       netProfitLoss: totalCredit - totalDebit,
