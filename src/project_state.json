@@ -1,0 +1,341 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 9,
+  "summary": "Build a comprehensive Personal Wealth & Asset Management Portal with a dark FinTech-style, dashboard-centric UI (React + Tailwind) and a Motoko backend. Core modules include a money lending & interest tracker with charts, a property/real-estate ledger, a net worth aggregator, a centralized executive dashboard with KPIs and quick actions, plus Cashflow (Give/Take) tracking and a Daily Profit/Loss report derived strictly from Cashflow entries. Add a new M(P/L) module to track multiple matches between two user-named teams, record back/lay entries against the selected favorite team with rate and bet amount (plus bookie name), continuously update per-team P/L after each entry using universal formulas, and settle/freeze final match P/L by selecting the winner. Use INR (₹) currency formatting across the entire app. Responsive design required; mock-login screen explicitly excluded.",
+  "architectural_notes": [
+    "Frontend: React + Tailwind CSS; responsive, dashboard-centric dark FinTech aesthetic (emerald + gold accents).",
+    "Backend: Motoko; support lending, property, and net-worth aggregation data.",
+    "Mock-login screen explicitly excluded for now.",
+    "Currency formatting: display INR (₹) across the entire app (no FX conversion requested).",
+    "Add Cashflow (Give/Take) entries persisted like other modules with running balance totals; UI uses green for collect (take) and red for owe (give).",
+    "Daily Profit/Loss report is derived strictly from Cashflow entries (exclude lending/property/net-worth inputs).",
+    "Money Lending module: keep monthly/yearly toggle and add a user-entered Tenure field under Principal; treat tenure as months when toggle=monthly and as years when toggle=yearly for calculations.",
+    "Add M(P/L) betting tracker module supporting multiple matches; each match has exactly 2 user-defined team names and its own entries + running per-team P/L.",
+    "M(P/L) entry inputs: favorite team (one of the 2 teams), action (BACK or LAY), rate (decimal), bet amount (INR), and bookie name.",
+    "Universal M(P/L) P/L formula per entry: BACK fav => fav += (rate-1)*amount, opposite -= amount; LAY fav => fav -= (rate-1)*amount, opposite += amount."
+  ],
+  "known_issues": [
+    "Assistant previously returned an error ('Sorry, I'm not firing on all cylinders right now') during module definition; user requested retry and proceeded."
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-build-the-react-frontend-information-architecture-with-dashboard-centric-navigation-for-executive-dashboard-landing-money-lending-interest-tracker-property-ledger-and-net-worth-aggregator-screens",
+      "title": "Build the React frontend information architecture with dashboard-centric navigation for: Executive Dashboard (landing), Money Lending & Interest Tracker, Property Ledger, and Net Worth Aggregator screens.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-money-lending-interest-tracker-ui-loan-input-form-borrower-name-collateral-security-loan-term-toggle-monthly-yearly-interest-rate-r-and-any-needed-principal-amount-loan-list-table-and-an-insights-section-rendering-a-monthly-interest-income-bar-chart-and-principal-vs-interest-pie-chart-from-backend-data",
+      "title": "Implement the Money Lending & Interest Tracker UI: loan input form (Borrower Name, Collateral/Security, Loan Term toggle monthly/yearly, Interest Rate (r), and any needed principal/amount), loan list/table, and an Insights section rendering a monthly interest income bar chart and principal vs. interest pie chart from backend data.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-property-real-estate-ledger-ui-property-input-form-address-land-area-with-unit-purchase-price-acquisition-date-and-a-card-based-property-gallery-list-view",
+      "title": "Implement the Property & Real Estate Ledger UI: property input form (address, land area with unit, purchase price, acquisition date) and a card-based property gallery/list view.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-total-wealth-net-worth-aggregator-ui-inputs-for-gold-weight-value-stocks-cash-and-other-assets-plus-a-real-time-net-worth-summary-that-includes-totals-from-property-and-lending-modules",
+      "title": "Implement the Total Wealth & Net Worth Aggregator UI: inputs for gold (weight/value), stocks, cash, and other assets, plus a real-time net worth summary that includes totals from property and lending modules.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-the-centralized-executive-dashboard-landing-page-with-1-wealth-overview-donut-circular-charts-showing-asset-allocation-e-g-property-vs-stocks-vs-cash-vs-gold-vs-other-2-quick-action-buttons-to-add-a-new-loan-or-add-a-new-property-asset-and-3-a-primary-kpi-card-showing-total-monthly-cash-flow-from-interest-income",
+      "title": "Build the Centralized Executive Dashboard landing page with: (1) Wealth Overview donut/circular charts showing asset allocation (e.g., property vs stocks vs cash vs gold vs other), (2) Quick Action buttons to add a new loan or add a new property/asset, and (3) a primary KPI card showing Total Monthly Cash Flow from interest income.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-consistent-dark-mode-fintech-visual-system-across-the-app-high-readability-professional-clean-styling-emerald-green-accents-for-growth-gold-accents-and-modern-components-cards-optionally-glassmorphism-or-flat-design-ensure-full-responsiveness-for-mobile-and-desktop",
+      "title": "Apply a consistent dark-mode FinTech visual system across the app: high readability, professional/clean styling, emerald green accents for growth, gold accents, and modern components (cards; optionally glassmorphism or flat design). Ensure full responsiveness for mobile and desktop.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-frontend-data-fetching-mutations-with-the-motoko-canister-using-the-existing-react-hooks-and-react-query-patterns-without-modifying-immutable-hook-files-implement-query-invalidation-so-dashboard-kpis-charts-stay-in-sync-after-creates-updates-deletes",
+      "title": "Integrate frontend data fetching/mutations with the Motoko canister using the existing React hooks and React Query patterns, without modifying immutable hook files. Implement query invalidation so dashboard KPIs/charts stay in sync after creates/updates/deletes.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-switch-global-currency-display-across-all-existing-modules-dashboard-lending-properties-net-worth-charts-tooltips-and-all-form-labels-from-usd-to-inr-using-consistent-inr-number-formatting-for-all-amounts",
+      "title": "Switch global currency display across all existing modules (Dashboard, Lending, Properties, Net Worth, charts/tooltips, and all form labels) from USD ($) to INR (₹), using consistent INR number formatting for all amounts.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-cashflow-module-to-the-react-frontend-with-a-page-that-allows-users-to-create-and-manage-cashflow-entries-name-amount-to-collect-vs-amount-owed-view-entry-history-in-a-list-table-and-see-summary-totals-total-to-collect-total-to-give-net-balance-use-green-styling-for-collect-take-inputs-entries-and-red-styling-for-owe-give-inputs-entries",
+      "title": "Add a Cashflow module to the React frontend with a page that allows users to create and manage Cashflow entries (name + amount to collect vs amount owed), view entry history in a list/table, and see summary totals (total to collect, total to give, net balance). Use green styling for “collect/take” inputs/entries and red styling for “owe/give” inputs/entries.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-daily-profit-loss-module-page-in-the-react-frontend-that-displays-the-daily-p-l-report-derived-strictly-from-cashflow-entries-and-under-this-module-only-show-cashflow-derived-data-daily-totals-and-optional-chart-table",
+      "title": "Add a Daily Profit/Loss module page in the React frontend that displays the Daily P/L report derived strictly from Cashflow entries, and under this module only show cashflow-derived data (daily totals and optional chart/table).",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-frontend-routing-navigation-and-react-query-cache-structure-to-support-the-new-cashflow-and-daily-profit-loss-modules-without-modifying-any-immutable-hook-files-add-appropriate-query-keys-and-query-invalidation-so-cashflow-and-daily-p-l-stay-in-sync-after-mutations",
+      "title": "Extend the frontend routing, navigation, and React Query cache structure to support the new Cashflow and Daily Profit/Loss modules without modifying any immutable hook files; add appropriate query keys and query invalidation so Cashflow and Daily P/L stay in sync after mutations.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-tenure-input-field-to-the-money-lending-interest-tracker-loan-form-ui-placed-directly-under-the-principal-amount-field-and-keep-the-existing-loan-term-monthly-yearly-toggle",
+      "title": "Add a new Tenure input field to the Money Lending & Interest Tracker loan form UI, placed directly under the Principal Amount field, and keep the existing Loan Term (monthly/yearly) toggle.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-lending-table-and-insights-ui-calculations-to-use-the-stored-tenure-for-interest-total-calculations-interpreting-tenure-as-months-when-termmonthly-true-and-as-years-when-termmonthly-false",
+      "title": "Update the lending table and insights UI calculations to use the stored tenure for interest/total calculations, interpreting tenure as months when termMonthly=true and as years when termMonthly=false.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-navigation-item-labeled-m-p-l-and-a-new-route-page-for-the-m-p-l-module-so-users-can-access-it-from-the-main-app-shell-alongside-dashboard-lending-properties-net-worth-cashflow-daily-p-l",
+      "title": "Add a new navigation item labeled \"M(P/L)\" and a new route/page for the M(P/L) module so users can access it from the main app shell alongside Dashboard/Lending/Properties/Net Worth/Cashflow/Daily P/L.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-m-p-l-ui-to-create-and-manage-multiple-matches-where-each-match-captures-exactly-two-user-defined-team-names-team-1-and-team-2",
+      "title": "Implement M(P/L) UI to create and manage multiple matches, where each match captures exactly two user-defined team names (Team 1 and Team 2).",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-m-p-l-entry-system-ui-inside-a-match-for-each-entry-prompt-for-1-which-team-is-favorite-select-one-of-the-two-teams-2-back-or-lay-selection-3-rate-decimal-e-g-1-40-4-bet-amount-inr-and-5-bookie-name-text-allow-adding-unlimited-entries-per-match",
+      "title": "Implement M(P/L) entry system UI inside a match: for each entry, prompt for (1) which team is favorite (select one of the two teams), (2) Back or Lay selection, (3) Rate (decimal, e.g., 1.40), (4) Bet Amount (INR), and (5) Bookie name (text). Allow adding unlimited entries per match.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-compute-and-display-running-p-l-for-both-teams-after-every-entry-using-the-universal-formulas-back-favorite-favorite-p-l-rate-1-amount-and-opposite-team-p-l-amount-lay-favorite-favorite-p-l-rate-1-amount-and-opposite-team-p-l-amount-display-the-cumulative-totals-per-team-for-the-match-in-inr-formatting-with-clear-positive-negative-sign-handling",
+      "title": "Compute and display running P/L for both teams after every entry using the universal formulas: BACK favorite → favorite P/L += (rate − 1) × amount and opposite team P/L += −amount; LAY favorite → favorite P/L += −(rate − 1) × amount and opposite team P/L += +amount. Display the cumulative totals per team for the match in INR formatting (₹) with clear positive/negative sign handling.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-match-settlement-capability-after-the-user-finishes-a-match-prompt-to-select-the-winner-one-of-the-two-teams-and-settle-the-match-settling-must-freeze-the-match-prevent-new-entries-and-preserve-the-final-p-l-values-as-the-match-s-final-result-along-with-winner-and-settled-timestamp",
+      "title": "Add match settlement capability: after the user finishes a match, prompt to select the winner (one of the two teams) and settle the match. Settling must freeze the match: prevent new entries and preserve the final P/L values as the match’s final result along with winner and settled timestamp.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-the-new-m-p-l-module-frontend-with-the-motoko-canister-using-the-existing-react-query-patterns-add-feature-scoped-api-hooks-for-listing-creating-matches-loading-match-details-listing-adding-entries-loading-p-l-summary-and-settling-matches-add-appropriate-query-keys-and-query-invalidation-so-p-l-and-match-screens-stay-in-sync-after-mutations",
+      "title": "Integrate the new M(P/L) module frontend with the Motoko canister using the existing React Query patterns: add feature-scoped API hooks for listing/creating matches, loading match details, listing/adding entries, loading P/L summary, and settling matches. Add appropriate query keys and query invalidation so P/L and match screens stay in sync after mutations.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-routing-to-include-the-new-m-p-l-page-using-the-same-tanstack-router-approach-used-for-existing-modules-without-breaking-existing-routes",
+      "title": "Update frontend routing to include the new M(P/L) page using the same TanStack Router approach used for existing modules, without breaking existing routes.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Implement Money Lending & Interest Tracker module (loan input form, interest calculations, insights charts: monthly interest bar chart + principal vs interest pie chart)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Implement Property & Real Estate Ledger module (fields for address, land area, purchase price, acquisition date; card-based property views)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Implement Total Wealth & Net Worth Aggregator (inputs for gold, stocks, cash, other assets; aggregate with lending + property to show real-time total net worth)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Build Centralized Executive Dashboard landing page (wealth overview donut graphs for asset allocation, quick actions to add loan/asset, KPI for total monthly cash flow from interest income)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Apply professional dark-mode FinTech UI design system (emerald + gold accents; modern cards/glassmorphism/flat components; high readability; responsive mobile/desktop)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Set up React + Tailwind frontend integrated with Motoko backend for data storage and module functionality",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Implement Motoko backend data models and stable storage for Loans, Properties, and standalone Wealth Inputs (gold, stocks, cash, other assets), with unique IDs and created/updated timestamps.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Provide backend CRUD APIs for the Money Lending module: create/update/delete/list/get loans with fields Borrower Name, Collateral/Security Description, Loan Term (monthly vs yearly), and Interest Rate (r), plus any principal/amount field needed to compute repayment totals.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Implement backend calculation/query APIs for lending insights: (1) monthly interest income series suitable for a bar chart and (2) principal vs. interest distribution suitable for a pie chart, derived from stored loans.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Provide backend CRUD APIs for the Property & Real Estate Ledger: create/update/delete/list/get properties with Location/Address, Land Area, Purchase Price, and Date of Acquisition.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Provide backend APIs for Wealth Inputs (gold holdings weight/value, stock portfolio value, liquid cash, other assets) and a net worth aggregation API that combines: (a) total property value, (b) lending totals, and (c) wealth inputs into a single Total Net Worth response.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Switch global currency display/formatting from USD ($) to INR (₹) across all modules (labels, formatting, UI components, summaries, charts where applicable)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Add a Cashflow (Give/Take) module: user inputs name + amount to collect (take) vs amount owed (give); persist entries with history/totals and compute running balance (net to receive vs net to pay); use green styling for collect (take) and red styling for owe (give)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add a Daily Profit/Loss report module calculated strictly from Cashflow entries (and only includes the cashflow give/take data)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Implement a new Cashflow (Give/Take) data model and APIs in the Motoko backend to persist entries per authenticated user, including: name/counterparty, entry type (collect/take vs owe/give), amount, createdAt, updatedAt, plus CRUD operations and summary totals (total to collect, total to give, and running net balance).",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Implement a Daily Profit/Loss report in the Motoko backend calculated strictly from Cashflow entries, with an API that returns daily aggregates (per day: total collected, total given, and net profit/loss = collected - given) for the authenticated user.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add user-input \"Tenure\" field to Money Lending & Interest Tracker form (placed directly under principal amount) while keeping the monthly/yearly toggle; interpret tenure as months when toggle=monthly and as years when toggle=yearly for interest calculations.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Extend the backend loan model and API to store a user-entered loan tenure value, while keeping the existing termMonthly (monthly/yearly) toggle.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Update backend lending-related calculations (including any aggregate/KPI endpoints used by the dashboard) to incorporate the stored tenure when computing total interest and total repayment for a loan, interpreting the tenure as months when termMonthly=true and as years when termMonthly=false.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add new M(P/L) module: create/manage multiple matches (2 user-named teams), record entries (select fav team, back/lay, rate, bet amount, bookie name), auto-update running P/L per team after each entry, and settle/freeze final match P/L by selecting winner",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Implement Motoko backend data model + CRUD APIs for M(P/L): matches (two team names, status, winner, settledAt) and match entries (favTeam, back/lay, rate, amount, bookieName, timestamps), plus computed per-team P/L summaries",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Implement Motoko backend data model and APIs for M(P/L) that support per-authenticated-user storage of: matches (two team names, status, winner, createdAt/updatedAt, settledAt) and match entries (matchId, favoriteTeam indicator, back/lay, rate, amount, bookieName, createdAt/updatedAt). Provide APIs to create/list/get matches, add/list entries for a match, compute per-team P/L summary for a match, and settle a match.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Personal Wealth & Asset Management Portal",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

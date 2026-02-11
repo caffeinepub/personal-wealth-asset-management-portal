@@ -1,0 +1,153 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-a-new-navigation-item-labeled-m-p-l-and-a-new-route-page-for-the-m-p-l-module-so-users-can-access-it-from-the-main-app-shell-alongside-dashboard-lending-properties-net-worth-cashflow-daily-p-l",
+      "featureTitle": "Add a new navigation item labeled \"M(P/L)\" and a new route/page for the M(P/L) module so users can access it from the main app shell alongside Dashboard/Lending/Properties/Net Worth/Cashflow/Daily P/L.",
+      "files": [
+        "frontend/src/components/navigation/NavLinks.tsx",
+        "frontend/src/pages/MatchProfitLossPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-23"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-m-p-l-ui-to-create-and-manage-multiple-matches-where-each-match-captures-exactly-two-user-defined-team-names-team-1-and-team-2",
+      "featureTitle": "Implement M(P/L) UI to create and manage multiple matches, where each match captures exactly two user-defined team names (Team 1 and Team 2).",
+      "files": [
+        "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+        "frontend/src/features/mpl/components/MatchDetailView.tsx",
+        "frontend/src/features/mpl/components/MatchesListCard.tsx",
+        "frontend/src/pages/MatchProfitLossPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-m-p-l-entry-system-ui-inside-a-match-for-each-entry-prompt-for-1-which-team-is-favorite-select-one-of-the-two-teams-2-back-or-lay-selection-3-rate-decimal-e-g-1-40-4-bet-amount-inr-and-5-bookie-name-text-allow-adding-unlimited-entries-per-match",
+      "featureTitle": "Implement M(P/L) entry system UI inside a match: for each entry, prompt for (1) which team is favorite (select one of the two teams), (2) Back or Lay selection, (3) Rate (decimal, e.g., 1.40), (4) Bet Amount (INR), and (5) Bookie name (text). Allow adding unlimited entries per match.",
+      "files": [
+        "frontend/src/features/mpl/components/EntriesTable.tsx",
+        "frontend/src/features/mpl/components/EntryFormCard.tsx",
+        "frontend/src/features/mpl/components/MatchDetailView.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-25"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-compute-and-display-running-p-l-for-both-teams-after-every-entry-using-the-universal-formulas-back-favorite-favorite-p-l-rate-1-amount-and-opposite-team-p-l-amount-lay-favorite-favorite-p-l-rate-1-amount-and-opposite-team-p-l-amount-display-the-cumulative-totals-per-team-for-the-match-in-inr-formatting-with-clear-positive-negative-sign-handling",
+      "featureTitle": "Compute and display running P/L for both teams after every entry using the universal formulas: BACK favorite → favorite P/L += (rate − 1) × amount and opposite team P/L += −amount; LAY favorite → favorite P/L += −(rate − 1) × amount and opposite team P/L += +amount. Display the cumulative totals per team for the match in INR formatting (₹) with clear positive/negative sign handling.",
+      "files": [
+        "frontend/src/features/mpl/api.ts",
+        "frontend/src/features/mpl/components/MatchDetailView.tsx",
+        "frontend/src/features/mpl/utils/pl.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-26"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-match-settlement-capability-after-the-user-finishes-a-match-prompt-to-select-the-winner-one-of-the-two-teams-and-settle-the-match-settling-must-freeze-the-match-prevent-new-entries-and-preserve-the-final-p-l-values-as-the-match-s-final-result-along-with-winner-and-settled-timestamp",
+      "featureTitle": "Add match settlement capability: after the user finishes a match, prompt to select the winner (one of the two teams) and settle the match. Settling must freeze the match: prevent new entries and preserve the final P/L values as the match’s final result along with winner and settled timestamp.",
+      "files": [
+        "frontend/src/features/mpl/api.ts",
+        "frontend/src/features/mpl/components/MatchDetailView.tsx",
+        "frontend/src/features/mpl/components/SettleMatchDialog.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-27"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-integrate-the-new-m-p-l-module-frontend-with-the-motoko-canister-using-the-existing-react-query-patterns-add-feature-scoped-api-hooks-for-listing-creating-matches-loading-match-details-listing-adding-entries-loading-p-l-summary-and-settling-matches-add-appropriate-query-keys-and-query-invalidation-so-p-l-and-match-screens-stay-in-sync-after-mutations",
+      "featureTitle": "Integrate the new M(P/L) module frontend with the Motoko canister using the existing React Query patterns: add feature-scoped API hooks for listing/creating matches, loading match details, listing/adding entries, loading P/L summary, and settling matches. Add appropriate query keys and query invalidation so P/L and match screens stay in sync after mutations.",
+      "files": [
+        "frontend/src/features/mpl/api.ts",
+        "frontend/src/features/mpl/components/EntryFormCard.tsx",
+        "frontend/src/pages/MatchProfitLossPage.tsx",
+        "frontend/src/queryInvalidation.ts",
+        "frontend/src/queryKeys.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-29"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-frontend-routing-to-include-the-new-m-p-l-page-using-the-same-tanstack-router-approach-used-for-existing-modules-without-breaking-existing-routes",
+      "featureTitle": "Update frontend routing to include the new M(P/L) page using the same TanStack Router approach used for existing modules, without breaking existing routes.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/MatchProfitLossPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-30"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

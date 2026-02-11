@@ -1,0 +1,201 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "M(P/L) betting match module (frontend): multi-match tracking, entries, running P/L, settlement, and canister integration",
+  "requirements": [
+    {
+      "id": "REQ-23",
+      "summary": "Add M(P/L) navigation item and module entry page accessible from the main app shell.",
+      "acceptanceCriteria": [
+        "The left navigation renders a new item labeled \"M(P/L)\".",
+        "Clicking \"M(P/L)\" navigates to the M(P/L) page without breaking existing routes.",
+        "All user-facing text for the new module is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/navigation/NavLinks.tsx",
+          "operation": "modify",
+          "description": "Add a new nav item labeled \"M(P/L)\" pointing to the new M(P/L) route; keep existing items unchanged. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
+          "operation": "create",
+          "description": "Create the M(P/L) module page that will host match list + create-match UI and route-aware match detail rendering. Ensure all new user-facing strings are English. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "summary": "Implement M(P/L) UI to create and manage multiple matches with exactly two user-defined team names per match.",
+      "acceptanceCriteria": [
+        "The M(P/L) page provides a \"Create match\" flow that requires Team 1 name and Team 2 name.",
+        "The UI lists existing matches and allows opening a match to view its details.",
+        "Each match detail view clearly displays both team names."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "operation": "create",
+          "description": "Add a create-match dialog/flow with required inputs for Team 1 and Team 2 (no more/less than two teams), validating non-empty values before submission. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/MatchesListCard.tsx",
+          "operation": "create",
+          "description": "Add a match list UI showing existing matches and an action to open a match (navigating to the match detail route). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "operation": "create",
+          "description": "Add a match detail view that prominently displays the two team names and overall match status (open/settled). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
+          "operation": "modify",
+          "description": "Wire CreateMatchDialog and MatchesListCard into the M(P/L) page and render MatchDetailView when a match is selected via routing. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "summary": "Implement per-match entry creation UI capturing favorite team, back/lay, rate, bet amount (INR), and bookie name; allow unlimited entries and list them.",
+      "acceptanceCriteria": [
+        "Within an open (unsettled) match, the UI shows a form with: Favorite Team (dropdown with the 2 team names), Back/Lay control, Rate input, Bet Amount input, and Bookie Name input.",
+        "Submitting an entry appends it to the match’s entry list/table.",
+        "The entry list shows at minimum: created time (or date), favorite team, Back/Lay, rate, bet amount (₹ formatted), and bookie name.",
+        "The UI allows creating multiple entries consecutively without needing to recreate the match."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/mpl/components/EntryFormCard.tsx",
+          "operation": "create",
+          "description": "Create the entry form UI for an open match: favorite team select (exactly the match’s 2 team names), Back/Lay control, decimal rate input, INR bet amount input, and bookie name text input; submit via module mutation. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/EntriesTable.tsx",
+          "operation": "create",
+          "description": "Create an entries table/list showing created time/date, favorite team, Back/Lay, rate, bet amount formatted with the existing INR utility, and bookie name. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "operation": "modify",
+          "description": "Wire EntryFormCard and EntriesTable into the match detail view for open matches so users can add multiple entries consecutively without leaving the match. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "summary": "Display running per-team P/L totals after each entry using the universal Back/Lay formulas and INR formatting, kept consistent with backend summary.",
+      "acceptanceCriteria": [
+        "After adding an entry, the match detail view updates to show the latest cumulative P/L for Team 1 and Team 2.",
+        "The calculation matches the user examples (e.g., rate 1.4 back for 10,000 results in fav +4,000 and opposite −10,000; rate 1.05 lay for 13,000 results in fav −650 and opposite +13,000).",
+        "All P/L amounts and bet amounts are displayed with consistent INR (₹) formatting.",
+        "The running P/L is the sum of all entries in that match and is consistent between backend responses and frontend display."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/mpl/utils/pl.ts",
+          "operation": "create",
+          "description": "Add frontend utility functions to compute per-team running P/L from entries using the universal Back/Lay formulas (used for display cross-checks and/or optimistic UI). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "operation": "modify",
+          "description": "Render a clear per-team running P/L summary (Team 1 and Team 2), formatted with the existing INR currency utility and with clear positive/negative sign styling; keep displayed totals in sync with backend-provided summary. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/api.ts",
+          "operation": "create",
+          "description": "Add a React Query hook to load the per-match P/L summary from the canister and expose it to MatchDetailView; ensure it refetches/invalidates after entry mutations. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "summary": "Add match settlement UI: select winner (one of two teams), settle match, freeze match UI to prevent new entries, and show winner + settled timestamp.",
+      "acceptanceCriteria": [
+        "The match detail view provides a \"Settle match\" action for open matches.",
+        "Settlement requires choosing the winner from the two teams (no free-text winner).",
+        "After settlement, the UI indicates the match is settled and shows winner + settled time.",
+        "After settlement, the entry creation UI is disabled/hidden and backend rejects attempts to add new entries to the settled match.",
+        "The final (frozen) P/L shown after settlement remains unchanged even after page refresh."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/mpl/components/SettleMatchDialog.tsx",
+          "operation": "create",
+          "description": "Create a settle-match dialog prompting winner selection from the two team names only, and triggering the settle mutation. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "operation": "modify",
+          "description": "Add a \"Settle match\" action for open matches, show settled status/winner/settled time for settled matches, and disable/hide entry creation UI when settled. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/api.ts",
+          "operation": "modify",
+          "description": "Add a React Query mutation hook for settling a match; on success, invalidate match detail, match list, entries, and P/L summary queries so the frozen final result persists after refresh. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "summary": "Integrate M(P/L) module with the Motoko canister using feature-scoped React Query hooks, centralized query keys, and correct invalidation.",
+      "acceptanceCriteria": [
+        "New React Query hooks exist for M(P/L) operations and are used by the M(P/L) page/components.",
+        "New query keys are added in the centralized query key file, following the existing structure (e.g., queryKeys.*).",
+        "After creating a match, the match list refreshes automatically.",
+        "After adding an entry, the entry list and P/L summary refreshes automatically.",
+        "After settling a match, the match detail refreshes and entry creation is blocked without manual refresh.",
+        "No immutable hook files are modified."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/queryKeys.ts",
+          "operation": "modify",
+          "description": "Add feature-scoped query keys for M(P/L): match list, match detail, entries list per match, and P/L summary per match, following the existing queryKeys.* structure. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/queryInvalidation.ts",
+          "operation": "modify",
+          "description": "Add an invalidateMpl helper that invalidates M(P/L) queries (matches, match detail, entries, summary) to keep screens in sync after mutations. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/api.ts",
+          "operation": "create",
+          "description": "Create feature-scoped React Query hooks using the existing actor pattern: list/create matches, get match detail, list/add entries, load P/L summary, and settle match; include proper query keys and invalidation on success. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
+          "operation": "modify",
+          "description": "Adopt the new M(P/L) hooks for match listing/creation and route-driven match selection; ensure list refresh after create and detail stays in sync after mutations. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/features/mpl/components/EntryFormCard.tsx",
+          "operation": "modify",
+          "description": "Use the M(P/L) add-entry mutation hook and ensure the UI supports consecutive entry creation while automatically refreshing entries and P/L summary via invalidation. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "summary": "Register TanStack Router routes for the M(P/L) module using the existing AuthGate-wrapped route tree without breaking other routes.",
+      "acceptanceCriteria": [
+        "A new route is registered in the router tree and renders the M(P/L) page component.",
+        "The route is reachable when authenticated via Internet Identity (same AuthGate flow as other pages).",
+        "Existing routes continue to work as before."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register the new M(P/L) route(s) under the existing root route (AuthGate + AppShell), rendering MatchProfitLossPage; include a route for match details (e.g., via path param) so opening a match is navigable without breaking existing routes. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/MatchProfitLossPage.tsx",
+          "operation": "modify",
+          "description": "Implement route-param (or route-search) driven selection so the page can render match list vs match detail consistently with the new router registration. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

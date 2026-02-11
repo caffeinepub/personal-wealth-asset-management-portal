@@ -1,0 +1,189 @@
+{
+  "kind": "build_request",
+  "title": "Add new M(P/L) betting match module with multi-match tracking, entries, running P/L, and settlement",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-23",
+      "text": "Add a new navigation item labeled \"M(P/L)\" and a new route/page for the M(P/L) module so users can access it from the main app shell alongside Dashboard/Lending/Properties/Net Worth/Cashflow/Daily P/L.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-name"
+        ],
+        "quotes": [
+          "Let the module be called M(P/L)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The left navigation renders a new item labeled \"M(P/L)\".",
+        "Clicking \"M(P/L)\" navigates to the M(P/L) page without breaking existing routes.",
+        "All user-facing text for the new module is in English."
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Implement M(P/L) UI to create and manage multiple matches, where each match captures exactly two user-defined team names (Team 1 and Team 2).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-multiple-matches"
+        ],
+        "quotes": [
+          "Multiple matches each with its own two teams and its own list of entries"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The M(P/L) page provides a \"Create match\" flow that requires Team 1 name and Team 2 name.",
+        "The UI lists existing matches and allows opening a match to view its details.",
+        "Each match detail view clearly displays both team names."
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Implement M(P/L) entry system UI inside a match: for each entry, prompt for (1) which team is favorite (select one of the two teams), (2) Back or Lay selection, (3) Rate (decimal, e.g., 1.40), (4) Bet Amount (INR), and (5) Bookie name (text). Allow adding unlimited entries per match.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-entry-fields"
+        ],
+        "quotes": [
+          "In the entry first ask for which team is fav, he’ll select one of those two entered teams, Then ask if he backed the team or laid the team, then ask for bet amount Then ask for rate of fav team",
+          "and in each entry ask for bookie name"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Within an open (unsettled) match, the UI shows a form with: Favorite Team (dropdown with the 2 team names), Back/Lay control, Rate input, Bet Amount input, and Bookie Name input.",
+        "Submitting an entry appends it to the match’s entry list/table.",
+        "The entry list shows at minimum: created time (or date), favorite team, Back/Lay, rate, bet amount (₹ formatted), and bookie name.",
+        "The UI allows creating multiple entries consecutively without needing to recreate the match."
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "text": "Compute and display running P/L for both teams after every entry using the universal formulas: BACK favorite → favorite P/L += (rate − 1) × amount and opposite team P/L += −amount; LAY favorite → favorite P/L += −(rate − 1) × amount and opposite team P/L += +amount. Display the cumulative totals per team for the match in INR formatting (₹) with clear positive/negative sign handling.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-formula-confirm"
+        ],
+        "quotes": [
+          "Yes the universal rule is correct"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After adding an entry, the match detail view updates to show the latest cumulative P/L for Team 1 and Team 2.",
+        "The calculation matches the user examples (e.g., rate 1.4 back for 10,000 results in fav +4,000 and opposite −10,000; rate 1.05 lay for 13,000 results in fav −650 and opposite +13,000).",
+        "All P/L amounts and bet amounts are displayed with consistent INR (₹) formatting.",
+        "The running P/L is the sum of all entries in that match and is consistent between backend responses and frontend display."
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "text": "Add match settlement capability: after the user finishes a match, prompt to select the winner (one of the two teams) and settle the match. Settling must freeze the match: prevent new entries and preserve the final P/L values as the match’s final result along with winner and settled timestamp.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-settle"
+        ],
+        "quotes": [
+          "Settle the final P/L of that match"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The match detail view provides a \"Settle match\" action for open matches.",
+        "Settlement requires choosing the winner from the two teams (no free-text winner).",
+        "After settlement, the UI indicates the match is settled and shows winner + settled time.",
+        "After settlement, the entry creation UI is disabled/hidden and backend rejects attempts to add new entries to the settled match.",
+        "The final (frozen) P/L shown after settlement remains unchanged even after page refresh."
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "text": "Implement Motoko backend data model and APIs for M(P/L) that support per-authenticated-user storage of: matches (two team names, status, winner, createdAt/updatedAt, settledAt) and match entries (matchId, favoriteTeam indicator, back/lay, rate, amount, bookieName, createdAt/updatedAt). Provide APIs to create/list/get matches, add/list entries for a match, compute per-team P/L summary for a match, and settle a match.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-scope"
+        ],
+        "quotes": [
+          "Multiple matches each with its own two teams and its own list of entries",
+          "Settle the final P/L of that match",
+          "after every entry update the p/l under the teams"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes match CRUD sufficient to: create a match and list/get matches for the caller (admin may access broader resources only if consistent with existing access model).",
+        "Backend exposes entry operations sufficient to: add an entry to a match and list entries for a match.",
+        "Backend exposes a per-match P/L summary API that returns cumulative P/L for both teams based on stored entries and the universal formulas.",
+        "Backend exposes a settle API that stores winner + settledAt, marks the match settled, and prevents further entry additions.",
+        "All backend methods enforce the existing access-control pattern used for other modules (user permission required; ownership checks where applicable)."
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "text": "Integrate the new M(P/L) module frontend with the Motoko canister using the existing React Query patterns: add feature-scoped API hooks for listing/creating matches, loading match details, listing/adding entries, loading P/L summary, and settling matches. Add appropriate query keys and query invalidation so P/L and match screens stay in sync after mutations.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-start"
+        ],
+        "quotes": [
+          "Start"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New React Query hooks exist for M(P/L) operations and are used by the M(P/L) page/components.",
+        "New query keys are added in the centralized query key file, following the existing structure (e.g., queryKeys.*).",
+        "After creating a match, the match list refreshes automatically.",
+        "After adding an entry, the entry list and P/L summary refresh automatically.",
+        "After settling a match, the match detail refreshes and entry creation is blocked without manual refresh.",
+        "No immutable hook files are modified."
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "text": "Update frontend routing to include the new M(P/L) page using the same TanStack Router approach used for existing modules, without breaking existing routes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-mpl-name"
+        ],
+        "quotes": [
+          "Let the module be called M(P/L)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new route is registered in the router tree and renders the M(P/L) page component.",
+        "The route is reachable when authenticated via Internet Identity (same AuthGate flow as other pages).",
+        "Existing routes continue to work as before."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single-actor Motoko canister (all logic in backend/main.mo).",
+    "Do not modify any frontend files under frontend/src/components/ui or any paths listed as immutable hooks (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Use INR (₹) formatting for bet amounts and P/L amounts, consistent with existing currency utilities.",
+    "All user-facing text added for this module must be in English."
+  ],
+  "nonGoals": [
+    "Do not add external integrations (no third-party bookie APIs, no odds feeds).",
+    "Do not add real-time multiplayer/live match syncing (no WebSockets).",
+    "Do not implement complex betting market types beyond the specified favorite + Back/Lay + rate + amount model.",
+    "Do not change existing Lending/Properties/Net Worth/Cashflow/Daily P/L business logic except for necessary navigation/routing/query-key additions."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-11T08:37:28.270Z",
+  "summary": "Diff adds a new M(P/L) frontend feature (page, navigation item, TanStack route, React Query hooks, match/entry UI, settlement dialog) and introduces new mpl query keys/invalidation. However, backend M(P/L) APIs/data model are not evidenced in the provided backend diff, the P/L formula implementation appears to diverge from the required universal formulas, and some extra/unrequested additions (e.g., matchName field, backend migration module) are present.",
+  "missing_requirements": [
+    {
+      "id": "REQ-26",
+      "requirement": "Compute and display running P/L for both teams after every entry using the universal formulas (Back: fav += (rate−1)*amount, opp += −amount; Lay: fav += −(rate−1)*amount, opp += +amount) and keep frontend/backend consistent.",
+      "reason": "The added frontend P/L utility implements a different scenario-based calculation (\"strong/weak\") and uses (rate−1)*amount for underdog cases rather than the specified opposite-team ±amount universal rule. Backend-side calculation consistency cannot be verified from the diff summary.",
+      "evidence": [
+        "frontend/src/features/mpl/utils/pl.ts"
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "requirement": "Backend must reject attempts to add new entries to a settled match and preserve frozen final P/L (winner + settled timestamp) across refresh.",
+      "reason": "Frontend includes a settle dialog and shows settled winner/time, but the diff summary does not show backend logic enforcing settled-state immutability or rejecting addEntry after settlement; backend/main.mo content shown is truncated and contains no evidenced M(P/L) settlement enforcement.",
+      "evidence": [
+        "frontend/src/features/mpl/components/SettleMatchDialog.tsx",
+        "frontend/src/features/mpl/components/MatchDetailView.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "requirement": "Implement Motoko backend data model and APIs for M(P/L): per-user matches + entries storage, create/list/get matches, add/list entries, per-match P/L summary API, settle API with access control/ownership checks.",
+      "reason": "The diff summary for backend/main.mo is truncated and does not evidence any of the required new M(P/L) types, storage maps, or public methods (createMatch/listMatches/getMatch/addEntry/listEntries/getTeamPLSummary/settleMatch) nor access-control enforcement for them.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Added a backend migration module and wired it into the actor via `(with migration = Migration.run)` / `import Migration \"migration\"`, despite the constraint that all backend logic must remain in backend/main.mo as a single-actor canister.",
+      "reason": "BuildRequest constraints explicitly require all backend logic in backend/main.mo; the diff adds backend/migration.mo and references it from main.mo.",
+      "evidence": [
+        "backend/migration.mo",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Match creation UI requires an additional \"Match Name\" field (matchName) beyond the required exactly-two team names (Team 1 and Team 2).",
+      "reason": "REQ-24 specifies each match captures exactly two user-defined team names; the UI adds and requires a third field and sends it in the createMatch payload.",
+      "evidence": [
+        "frontend/src/features/mpl/components/CreateMatchDialog.tsx"
+      ]
+    },
+    {
+      "description": "Implemented a \"strong/weak\" (win/lose scenario) P/L model in the frontend UI/typing (team1StrongPL/team1WeakPL etc.) rather than a single cumulative P/L per team as specified.",
+      "reason": "REQ-26 asks for running cumulative totals per team using universal formulas; the UI displays two values per team (\"If team wins\" and \"If team loses\"), which is an additional modeling choice not requested.",
+      "evidence": [
+        "frontend/src/features/mpl/components/MatchDetailView.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.66,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/navigation/NavLinks.tsx",
+    "frontend/src/features/mpl/api.ts",
+    "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+    "frontend/src/features/mpl/components/EntriesTable.tsx",
+    "frontend/src/features/mpl/components/EntryFormCard.tsx",
+    "frontend/src/features/mpl/components/MatchDetailView.tsx",
+    "frontend/src/features/mpl/components/MatchesListCard.tsx",
+    "frontend/src/features/mpl/components/SettleMatchDialog.tsx",
+    "frontend/src/features/mpl/utils/pl.ts",
+    "frontend/src/features/properties/components/PropertyCardGrid.tsx",
+    "frontend/src/pages/MatchProfitLossPage.tsx",
+    "frontend/src/queryInvalidation.ts",
+    "frontend/src/queryKeys.ts",
+    "project_state.json"
+  ]
+}

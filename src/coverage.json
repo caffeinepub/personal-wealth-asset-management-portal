@@ -1,0 +1,159 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-11T08:37:28.275Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 8,
+    "implemented": 7,
+    "items": [
+      {
+        "id": "REQ-23",
+        "summary": "Add a new navigation item labeled \"M(P/L)\" and a new route/page for the M(P/L) module so users can access it from the main app shell alongside Dashboard/Lending/Properties/Net Worth/Cashflow/Daily P/L.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/navigation/NavLinks.tsx",
+          "frontend/src/pages/MatchProfitLossPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/navigation/NavLinks.tsx",
+          "frontend/src/pages/MatchProfitLossPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-24",
+        "summary": "Implement M(P/L) UI to create and manage multiple matches, where each match captures exactly two user-defined team names (Team 1 and Team 2).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "frontend/src/features/mpl/components/MatchesListCard.tsx",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "frontend/src/pages/MatchProfitLossPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+          "frontend/src/features/mpl/components/MatchesListCard.tsx",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "frontend/src/pages/MatchProfitLossPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-25",
+        "summary": "Implement M(P/L) entry system UI inside a match: for each entry, prompt for (1) which team is favorite (select one of the two teams), (2) Back or Lay selection, (3) Rate (decimal, e.g., 1.40), (4) Bet Amount (INR), and (5) Bookie name (text). Allow adding unlimited entries per match.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/mpl/components/EntryFormCard.tsx",
+          "frontend/src/features/mpl/components/EntriesTable.tsx",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/mpl/components/EntryFormCard.tsx",
+          "frontend/src/features/mpl/components/EntriesTable.tsx",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx"
+        ]
+      },
+      {
+        "id": "REQ-26",
+        "summary": "Compute and display running P/L for both teams after every entry using the universal formulas: BACK favorite → favorite P/L += (rate − 1) × amount and opposite team P/L += −amount; LAY favorite → favorite P/L += −(rate − 1) × amount and opposite team P/L += +amount. Display the cumulative totals per team for the match in INR formatting (₹) with clear positive/negative sign handling.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/mpl/utils/pl.ts",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "frontend/src/features/mpl/api.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/mpl/utils/pl.ts",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "frontend/src/features/mpl/api.ts"
+        ]
+      },
+      {
+        "id": "REQ-27",
+        "summary": "Add match settlement capability: after the user finishes a match, prompt to select the winner (one of the two teams) and settle the match. Settling must freeze the match: prevent new entries and preserve the final P/L values as the match’s final result along with winner and settled timestamp.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/features/mpl/components/SettleMatchDialog.tsx",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "frontend/src/features/mpl/api.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/features/mpl/components/SettleMatchDialog.tsx",
+          "frontend/src/features/mpl/components/MatchDetailView.tsx",
+          "frontend/src/features/mpl/api.ts"
+        ]
+      },
+      {
+        "id": "REQ-28",
+        "summary": "Implement Motoko backend data model and APIs for M(P/L) that support per-authenticated-user storage of: matches (two team names, status, winner, createdAt/updatedAt, settledAt) and match entries (matchId, favoriteTeam indicator, back/lay, rate, amount, bookieName, createdAt/updatedAt). Provide APIs to create/list/get matches, add/list entries for a match, compute per-team P/L summary for a match, and settle a match.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-29",
+        "summary": "Integrate the new M(P/L) module frontend with the Motoko canister using the existing React Query patterns: add feature-scoped API hooks for listing/creating matches, loading match details, listing/adding entries, loading P/L summary, and settling matches. Add appropriate query keys and query invalidation so P/L and match screens stay in sync after mutations.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/queryKeys.ts",
+          "frontend/src/queryInvalidation.ts",
+          "frontend/src/features/mpl/api.ts",
+          "frontend/src/pages/MatchProfitLossPage.tsx",
+          "frontend/src/features/mpl/components/EntryFormCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/queryKeys.ts",
+          "frontend/src/queryInvalidation.ts",
+          "frontend/src/features/mpl/api.ts",
+          "frontend/src/pages/MatchProfitLossPage.tsx",
+          "frontend/src/features/mpl/components/EntryFormCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-30",
+        "summary": "Update frontend routing to include the new M(P/L) page using the same TanStack Router approach used for existing modules, without breaking existing routes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/pages/MatchProfitLossPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/pages/MatchProfitLossPage.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/navigation/NavLinks.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/features/mpl/api.ts",
+    "frontend/src/features/mpl/components/CreateMatchDialog.tsx",
+    "frontend/src/features/mpl/components/EntriesTable.tsx",
+    "frontend/src/features/mpl/components/EntryFormCard.tsx",
+    "frontend/src/features/mpl/components/MatchDetailView.tsx",
+    "frontend/src/features/mpl/components/MatchesListCard.tsx",
+    "frontend/src/features/mpl/components/SettleMatchDialog.tsx",
+    "frontend/src/features/mpl/utils/pl.ts",
+    "frontend/src/features/properties/components/PropertyCardGrid.tsx",
+    "frontend/src/pages/MatchProfitLossPage.tsx",
+    "frontend/src/queryInvalidation.ts",
+    "frontend/src/queryKeys.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
